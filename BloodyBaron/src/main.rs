@@ -5,9 +5,11 @@ mod character;
 mod map;
 mod abilities;
 mod dialogue;
+mod ai;
+mod protag;
 
 // events
-mod movement;
+mod packs;
 
 fn main() -> Result<(), std::io::Error> {
     let mut event_queue = events::EventQueue::new();

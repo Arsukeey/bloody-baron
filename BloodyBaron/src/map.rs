@@ -2,6 +2,7 @@ use rand::random;
 
 pub const NUMBER_OF_ROOMS: usize = 9;
 
+#[derive(Copy, Clone)]
 pub enum RoomType {
     MainHall,
     Bathroom,
@@ -17,7 +18,8 @@ pub enum RoomType {
 #[derive(Debug)]
 pub struct Map {
     pub chars_in_rooms: Vec<Vec<String>>,
-    pub adjacency: [[u8; NUMBER_OF_ROOMS]; NUMBER_OF_ROOMS]
+    pub adjacency: [[u8; NUMBER_OF_ROOMS]; NUMBER_OF_ROOMS],
+    pub has_corpse: [bool; NUMBER_OF_ROOMS]
 }
 
 impl Map {
@@ -44,9 +46,11 @@ impl Map {
             vec![]
         ];
         let adjacency = Map::get_adjacency();
+        let has_corpse = [false; NUMBER_OF_ROOMS];
         Self {
             chars_in_rooms,
-            adjacency
+            adjacency,
+            has_corpse
         }
     }
 
