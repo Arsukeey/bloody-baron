@@ -12,7 +12,7 @@ pub fn overhearing(chars: Vec<Character>, map: Map) {
     // identifies who's in nearby rooms
 }
 
-pub fn turn_of_the_cards(chars: Vec<Character>, map: Map) {
+pub fn perfect_bluff(chars: Vec<Character>, map: Map) {
     // rises luck, by confusing the AI
 }
 

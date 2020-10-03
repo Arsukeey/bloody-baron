@@ -2,6 +2,10 @@ mod events;
 mod character;
 mod map;
 mod abilities;
+mod dialogue;
+
+// events
+mod movement;
 
 fn main() -> Result<(), std::io::Error> {
     let mut event_queue = events::EventQueue::new();
