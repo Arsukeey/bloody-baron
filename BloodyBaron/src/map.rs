@@ -1,6 +1,6 @@
 use rand::random;
 
-pub const NUMBER_OF_ROOMS: usize = 9;
+pub const NUMBER_OF_ROOMS: usize = 8;
 
 #[derive(Copy, Clone)]
 pub enum RoomType {
@@ -11,11 +11,10 @@ pub enum RoomType {
     InnHallway,
     Library,
     TrashRoom,
-    Shed,
-    SleepingRoom
+    Shed
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Map {
     pub chars_in_rooms: Vec<Vec<String>>,
     pub adjacency: [[u8; NUMBER_OF_ROOMS]; NUMBER_OF_ROOMS],
@@ -65,7 +64,6 @@ impl Map {
                 while chosen_room as usize == i || list_of_adjacent.contains(&chosen_room)  {
                     chosen_room += 1;
                     chosen_room %= NUMBER_OF_ROOMS as u8;
-                    println!("{}", chosen_room);
                 }
                 list_of_adjacent.push(chosen_room);
             }

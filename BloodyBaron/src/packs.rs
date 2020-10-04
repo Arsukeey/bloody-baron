@@ -2,6 +2,40 @@ use crate::map::Map;
 use crate::character::Character;
 use crate::protag::Protag;
 
+pub enum IdleChoices {
+    MoveRoom,
+    TalkToCharacter,
+    ExaminateCharacter
+}
+
+pub struct IdlePack {
+    pub map: Map,
+    pub choices: Vec<String>,
+    pub events: Vec<IdleChoices>,
+    pub chars_indices: Vec<usize>,
+    pub room_indices: Vec<usize>,
+}
+
+impl IdlePack {
+    pub fn starter(map: Map) -> Self {
+        let mut choices = vec![];
+        let mut events = vec![];
+        let mut chars_indices = vec![];
+        let mut room_indices = vec![];
+
+        // initialize first room here
+        
+
+        Self {
+            map,
+            choices,
+            events,
+            chars_indices,
+            room_indices
+        }
+    }
+}
+
 pub struct MovementPack<'a, 'b> {
     pub map: &'a mut Map,
     pub character: &'b mut Character,
