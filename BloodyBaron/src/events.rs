@@ -1,7 +1,7 @@
 use std::io::{stdin, stdout, Read, Write};
 use std::collections::VecDeque;
 use crate::character::Character;
-use crate::map::Map;
+use crate::map::{Map, RoomTable};
 use crate::packs::{
     IdleChoices,
     IdlePack,
@@ -36,6 +36,8 @@ pub enum EventType {
 }
 
 pub struct Event<'a, 'b, 'c> {
+    pub timestamp_hours: u8,
+    pub timestamp_minutes: u8,
     pub event_type: EventType,
     pub idle_pack: Option<IdlePack>,
     pub movement_pack: Option<MovementPack<'a, 'b>>,
@@ -55,6 +57,8 @@ pub struct Event<'a, 'b, 'c> {
 impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
     pub fn introduction() -> Self {
         Self {
+            timestamp_hours: 0,
+            timestamp_minutes: 0,
             event_type: EventType::Wildcard,
             idle_pack: None,
             movement_pack: None,
@@ -93,10 +97,12 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn start(map: Map) -> Self {
+    pub fn start(map: Map, characters: Vec<Character>) -> Self {
         Self {
+            timestamp_hours: 7,
+            timestamp_minutes: 0,
             event_type: EventType::Idle,
-            idle_pack: Some(IdlePack::starter(map)),
+            idle_pack: Some(IdlePack::starter(map, characters)),
             movement_pack: None,
             trust_pack: None,
             dialogue_pack: None,
@@ -118,10 +124,50 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 println!("{}", self.wildcard_line);
             }
 
+            EventType::Idle => {
+                println!("{}", format!("It is currently {}:{:02}.", self.timestamp_hours, self.timestamp_minutes));
+                println!("{}", format!("You are now in the {}.", RoomTable[protag.location as usize]));
+                match map.chars_in_rooms[protag.location as usize].len() {
+                    0 => println!("There's nobody else here."),
+                    1 => println!("{}", format!("You are alone here with {}.", map.chars_in_rooms[protag.location as usize][0])),
+                    _ => {
+                        for i in 0..map.chars_in_rooms[protag.location as usize].len() {
+                            print!("{}", map.chars_in_rooms[protag.location as usize][i]);
+                            if i < map.chars_in_rooms[protag.location as usize].len() - 2 {
+                                print!(", ");
+                            }
+                            else if i == map.chars_in_rooms[protag.location as usize].len() - 2 {
+                                print!(" and ");
+                            }
+                        }
+                        print!(" are also here with you.\n");
+                    }
+                }
+                println!("What will you do? Type and confirm your action's number.");
+                match &self.idle_pack {
+                    Some(idle_pack) => {
+                        let mut i = 1;
+                        for choice in &idle_pack.choices {
+                            println!("{}-> {}", i, choice);
+                            i += 1;
+                        }
+                    },
+                    None => {
+                        Event::event_without_pack_panic();
+                    }
+                }
+            }
+
             _ => {
                 ()
             }
         }
+    }
+
+    pub fn event_without_pack_panic() {
+        panic!("ERROR: an event from a given type was queued without an event pack from the same type.\n 
+        This was not supposed to happen.\n
+        Please contact the main dev about this.\n");
     }
 }
 
@@ -137,7 +183,6 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
         let mut events = VecDeque::new();
         events.push_back(Event::introduction());
         let map = Map::new();
-        events.push_back(Event::start(map.clone()));
         let characters = vec![
             Character::freya(&map),
             Character::ravi(&map),
@@ -149,6 +194,7 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
             Character::chio(&map),
             Character::odette(&map), 
         ];
+        events.push_back(Event::start(map.clone(), characters.clone()));
         let protag = Protag::new();
 
         Self {
@@ -173,7 +219,7 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
         let mut stdout = stdout();
         let mut stdin = stdin();
 
-        write!(stdout, "Press Enter to continue...")?;
+        write!(stdout, "Press Enter to continue... ")?;
         stdout.flush()?;
 
             // Read a single byte and discard

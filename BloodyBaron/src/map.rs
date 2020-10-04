@@ -2,6 +2,17 @@ use rand::random;
 
 pub const NUMBER_OF_ROOMS: usize = 8;
 
+pub const RoomTable: [&str; NUMBER_OF_ROOMS] = [
+    "Main Hall",
+    "Bathroom",
+    "Kitchen",
+    "Gym",
+    "Inn Hallway",
+    "Library",
+    "Trash Room",
+    "Shed"
+];
+
 #[derive(Copy, Clone)]
 pub enum RoomType {
     MainHall,

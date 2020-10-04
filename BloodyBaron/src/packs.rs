@@ -1,5 +1,5 @@
-use crate::map::Map;
-use crate::character::Character;
+use crate::map::{Map, RoomTable, NUMBER_OF_ROOMS};
+use crate::character::{Character, NUMBER_OF_CHARS};
 use crate::protag::Protag;
 
 pub enum IdleChoices {
@@ -17,14 +17,26 @@ pub struct IdlePack {
 }
 
 impl IdlePack {
-    pub fn starter(map: Map) -> Self {
+    pub fn starter(map: Map, characters: Vec<Character>) -> Self {
         let mut choices = vec![];
         let mut events = vec![];
         let mut chars_indices = vec![];
         let mut room_indices = vec![];
 
         // initialize first room here
-        
+        for i in 0..NUMBER_OF_CHARS {
+            chars_indices.push(i);
+            choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
+            events.push(IdleChoices::TalkToCharacter);
+            choices.push(format!("{}{}{}", "Examine ", characters[i].name, "'s profile"));
+        }
+        for i in 0..NUMBER_OF_ROOMS {
+            if map.adjacency[0][i] == 1 {
+                room_indices.push(i);
+                events.push(IdleChoices::MoveRoom);
+                choices.push(format!("Go to the {}", RoomTable[i]));
+            }
+        }
 
         Self {
             map,
