@@ -117,6 +117,9 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
 
             EventType::Idle => {
                 println!("{}", format!("It is currently {}:{:02}.", self.timestamp_hours, self.timestamp_minutes));
+                if self.timestamp_hours >= 22 || self.timestamp_hours <= 6 {
+                    println!("Therefore, it's nighttime. Be careful.")
+                }
                 println!("{}", format!("You are now in the {}.", RoomTable[game_data.protag.location as usize]));
                 match game_data.map.chars_in_rooms[game_data.protag.location as usize].len() {
                     0 => println!("There's nobody else here."),
