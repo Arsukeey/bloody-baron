@@ -533,7 +533,7 @@ pub struct GameData {
 impl GameData {
     pub fn new() -> Self {
         let map = Box::new(Map::new());
-        let characters = vec![
+        let mut characters = vec![
             Character::freya(&map),
             Character::ravi(&map),
             Character::luna(&map),
@@ -544,6 +544,10 @@ impl GameData {
             Character::chio(&map),
             Character::odette(&map), 
         ];
+
+        let random_uint = rand::random::<usize>() % NUMBER_OF_CHARS;
+        characters[random_uint].is_killer = true;
+
         let protag = Box::new(Protag::new());
         Self {
             map,
