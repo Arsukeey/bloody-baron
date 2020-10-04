@@ -2,12 +2,14 @@ use crate::map::{Map, RoomTable, NUMBER_OF_ROOMS};
 use crate::character::{Character, NUMBER_OF_CHARS};
 use crate::protag::Protag;
 
+#[derive(Clone)]
 pub enum IdleChoices {
     MoveRoom,
     TalkToCharacter,
-    ExaminateCharacter
+    ExamineCharacter
 }
 
+#[derive(Clone)]
 pub struct IdlePack {
     pub map: Map,
     pub choices: Vec<String>,
@@ -29,6 +31,7 @@ impl IdlePack {
             choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
             events.push(IdleChoices::TalkToCharacter);
             choices.push(format!("{}{}{}", "Examine ", characters[i].name, "'s profile"));
+            events.push(IdleChoices::ExamineCharacter);
         }
         for i in 0..NUMBER_OF_ROOMS {
             if map.adjacency[0][i] == 1 {

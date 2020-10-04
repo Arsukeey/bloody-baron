@@ -118,10 +118,11 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn execute(&self, map: &mut Map, characters: Vec<Character>, protag: &mut Protag) {
+    pub fn execute(&self, map: &mut Map, characters: Vec<Character>, protag: &mut Protag) -> Vec<Event<'a, 'b, 'c>> {
         match self.event_type {
             EventType::Wildcard => {
                 println!("{}", self.wildcard_line);
+                vec![]
             }
 
             EventType::Idle => {
@@ -143,6 +144,8 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         print!(" are also here with you.\n");
                     }
                 }
+
+                // display actions
                 println!("What will you do? Type and confirm your action's number.");
                 match &self.idle_pack {
                     Some(idle_pack) => {
@@ -156,10 +159,80 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         Event::event_without_pack_panic();
                     }
                 }
+
+                // get input
+                let mut buffer = String::new();
+                loop {
+                    stdin().read_line(&mut buffer).expect("Couldn't read input from stdin.");
+                    let parse_result = buffer.trim().parse::<u8>();
+                    println!("{}", buffer);
+                    match parse_result {
+                        Ok(i) => {
+                            if i > 0 && i <= self.idle_pack.as_ref().unwrap().choices.len() as u8 {
+                                break
+                            }
+                            else {
+                                print!("Please input a valid index. ");
+                            }
+                        },
+                        Err(..) => {
+                            print!("Please input an acceptable integer. ");
+                        }
+                    }
+                }
+                let choice = buffer.trim().parse::<u8>().unwrap() - 1;
+                match self.idle_pack.as_ref().unwrap().events[choice as usize] {
+                    IdleChoices::ExamineCharacter => {
+                        return vec![
+                            Event {
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::Wildcard,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                dialogue_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                victory_pack: None,
+                                game_over_pack: None,
+                                wildcard_line: characters[choice as usize / 2].details.clone()
+                            },
+                            Event {
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::Idle,
+                                idle_pack: self.idle_pack.clone(),
+                                movement_pack: None,
+                                trust_pack: None,
+                                dialogue_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                victory_pack: None,
+                                game_over_pack: None,
+                                wildcard_line: characters[choice as usize].details.clone()
+                            }
+                        ]
+                    },
+                    IdleChoices::TalkToCharacter => {
+                        return vec![];
+                    },
+                    IdleChoices::MoveRoom => {
+                        return vec![];
+                    }
+                }
             }
 
             _ => {
-                ()
+                vec![]
             }
         }
     }
@@ -205,14 +278,12 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
         }
     }
 
-    fn enqueue_event(&mut self, event: Event<'a, 'b, 'c>) {
-        // called in case another event calls for a new event
-        self.events.push_back(event);
-    }
-
     pub fn execute_event(&mut self) {
         // here we execute all char actions
-        self.events[0].execute(&mut self.map, self.characters.clone(), &mut self.protag);
+        let consequences = self.events[0].execute(&mut self.map, self.characters.clone(), &mut self.protag);
+        for event in consequences {
+            self.events.push_back(event);
+        }
     }
 
     pub fn allow_next_event(&self) -> Result<(), std::io::Error> {
