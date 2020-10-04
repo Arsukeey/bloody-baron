@@ -117,9 +117,41 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
 
             EventType::Idle => {
                 println!("{}", format!("It is currently {}:{:02}.", self.timestamp_hours, self.timestamp_minutes));
-                if self.timestamp_hours >= 22 || self.timestamp_hours <= 6 {
-                    println!("Therefore, it's nighttime. Be careful.")
+
+                if self.timestamp_hours == 7 && self.timestamp_minutes == 0 {
+                    for i in 0..game_data.map.chars_in_rooms.len() {
+                        game_data.map.chars_in_rooms[i].clear();
+                    }
+                    for character in game_data.characters.clone() {
+                        if character.is_alive {
+                            game_data.map.chars_in_rooms[RoomType::MainHall as usize].push(character.name);
+                        }
+                    }
                 }
+                else if self.timestamp_hours == 21 {
+                    println!("It's almost nighttime. You may want to go back to your room.");
+                }
+                else if self.timestamp_hours >= 22 || self.timestamp_hours <= 6 {
+                    println!("Therefore, it's nighttime. Be careful.");
+                    if self.timestamp_hours == 22 && self.timestamp_minutes == 0 {
+                        // send almost everyone to their rooms
+                        let mut random_pick = rand::random::<usize>() % NUMBER_OF_CHARS;
+                        while !game_data.characters[random_pick].is_alive || game_data.characters[random_pick].is_killer {
+                            random_pick += 1;
+                            random_pick %= NUMBER_OF_CHARS;
+                        }
+                        for i in 0..game_data.map.chars_in_rooms.len() {
+                            for j in 0..game_data.map.chars_in_rooms[i].len() {
+                                if game_data.map.chars_in_rooms[i][j] != game_data.killer_name 
+                                    && game_data.map.chars_in_rooms[i][j] != game_data.characters[random_pick].name {
+                                    // remove name
+                                    game_data.map.chars_in_rooms[i].remove(j);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 println!("{}", format!("You are now in the {}.", RoomTable[game_data.protag.location as usize]));
                 match game_data.map.chars_in_rooms[game_data.protag.location as usize].len() {
                     0 => println!("There's nobody else here."),
@@ -149,7 +181,8 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                     &mut choices,
                     &mut events,
                     &mut chars_indices,
-                    &mut room_indices);
+                    &mut room_indices,
+                    self.timestamp_hours);
 
                 // display actions
                 println!("What will you do? Type and confirm your action's number.");
@@ -302,6 +335,82 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                             wildcard_line: String::new()
                         });
 
+                        ret
+                    },
+                    IdleChoices::GoToRoom => {
+                        game_data.protag.location = RoomType::MainHall;
+                        let mut ret = vec![
+                            Event {
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::Wildcard,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: "You went back to your room and locked the door.
+                                You have a good night of sleep.\n
+                                ".to_string()
+                            },
+                            Event {
+                                timestamp_hours: 7,
+                                timestamp_minutes: 0,
+                                event_type: EventType::Wildcard,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: "Nighttime is now over, it's 7 o'clock.
+                                You leave your room and prepare to meet the other people in the Main Hall.\n
+                                ".to_string()
+                            }
+                        ];
+
+                        if self.check_victory(&game_data.characters) {
+                            ret.push(Event {
+                                timestamp_hours: 7,
+                                timestamp_minutes: 0,
+                                event_type: EventType::Victory,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: String::new()
+                            });
+                        }
+                        else {
+                            self.random_murder(&mut game_data.map, &mut game_data.characters);
+                            ret.push(Event {
+                                timestamp_hours: 7,
+                                timestamp_minutes: 0,
+                                event_type: EventType::Idle,
+                                idle_pack: Some(IdlePack{}),
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: String::new()
+                            });
+                        }
                         ret
                     }
                 }
@@ -460,7 +569,19 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn check_murder(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>) {
+    pub fn random_murder(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>) {
+        use rand::random;
+        let mut killed = random::<usize>() % NUMBER_OF_CHARS;
+        while !characters[killed].is_alive || characters[killed].is_killer {
+            killed += 1;
+            killed %= NUMBER_OF_CHARS; 
+        }
+        characters[killed].is_alive = false;
+        let room = random::<usize>() % NUMBER_OF_ROOMS;
+        map.has_corpse[room] = true;
+    }
+
+    pub fn check_murder(&self, map: &mut Box<Map>, characters: &mut Vec<Character>) {
         for i in 0..map.chars_in_rooms.len() {
             if map.chars_in_rooms[i].len() == 2 {
                 let index0 = characters.iter().position(|x| x.name == map.chars_in_rooms[i][0]).unwrap();
@@ -479,7 +600,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn check_game_over(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>, protag: &mut Box<Protag>, timestamp_hours: u8) -> bool {
+    pub fn check_game_over(&self, map: &mut Box<Map>, characters: &mut Vec<Character>, protag: &mut Box<Protag>, timestamp_hours: u8) -> bool {
         let mut alive_characters = 0;
         for character in characters.clone() {
             if character.is_alive {
@@ -512,7 +633,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn check_victory(&mut self, characters: &Vec<Character>) -> bool {
+    pub fn check_victory(&self, characters: &Vec<Character>) -> bool {
         for character in characters {
             if !character.is_alive && character.is_killer {
                 return true;
@@ -528,7 +649,8 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         choices: &mut Vec<String>,
         events: &mut Vec<IdleChoices>,
         chars_indices: &mut Vec<usize>,
-        room_indices: &mut Vec<usize>) {
+        room_indices: &mut Vec<usize>,
+        timestamp_hours: u8) {
 
         for i in 0..NUMBER_OF_CHARS {
             if map.chars_in_rooms[protag.location as usize].contains(&characters[i].name) && characters[i].is_alive {
@@ -549,6 +671,11 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 events.push(IdleChoices::MoveRoom);
                 choices.push(format!("Go to the {}", RoomTable[i]));
             }
+        }
+
+        if timestamp_hours >= 21 || timestamp_hours <= 6 {
+            events.push(IdleChoices::GoToRoom);
+            choices.push("Go back to your room and sleep.".to_string());
         }
     }
 

@@ -1,5 +1,4 @@
 use crate::character::{Character, NUMBER_OF_CHARS};
-use crate::events::GameData;
 use crate::map::{Map, NUMBER_OF_ROOMS};
 use crate::packs::MovementPack;
 use num_traits::FromPrimitive;
@@ -37,6 +36,10 @@ impl AI {
     }
 
     pub fn choose_movement(&mut self, map: Box<Map>, character: Character, index: usize) -> Option<MovementPack> {
+        if !character.is_alive {
+            return None;
+        }
+
         let move_origin = map.chars_in_rooms.iter().
             position(|x| x.contains(&character.name)).unwrap();
         let mut random_float = rand::random::<f32>();

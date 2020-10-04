@@ -24,7 +24,7 @@ pub fn pitiful_begging(chars: Vec<Character>, map: &Map) {
     // beg for your life (works only during the day)
 }
 
-pub fn exceptional_diplomacy(chars: Vec<Character>, map: &Map) {
+pub fn hindsight(chars: Vec<Character>, map: &Map) {
     // every dialogue path leads to gaining trust
 }
 

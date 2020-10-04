@@ -37,17 +37,7 @@ pub struct Map {
 impl Map {
     pub fn new() -> Self {
         let chars_in_rooms = vec![
-            vec![
-                "Freya".to_string(),
-                "Ravi".to_string(),
-                "Luna".to_string(),
-                "John".to_string(),
-                "Amanda".to_string(),
-                "Vincent".to_string(),
-                "Larissa".to_string(),
-                "Odette".to_string(),
-                "Chio".to_string()
-            ],
+            vec![],
             vec![],
             vec![],
             vec![],

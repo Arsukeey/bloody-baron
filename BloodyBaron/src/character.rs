@@ -137,8 +137,8 @@ impl Character {
         let trust_line = "John brags to you about his life achievements for about an hour. It was a tough time having to go through 
         this, but after some nodding, John seems to like the fact that you listened.\n
         You have gained John's trust!\n
-        You have now the passive ability Perfect Bluff. From now on, the other characters will move and take decisions according to a 
-        suboptimal pattern.\n
+        You have now the passive ability Perfect Bluff. During trials, people may follow your lead even if you haven't gained 
+        their trust yet.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
@@ -218,15 +218,14 @@ impl Character {
         let name = "Larissa".to_string();
         let is_alive = true;
         let is_killer = false;
-        let ability = exceptional_diplomacy;
+        let ability = hindsight;
         let ai = AI::new(map);
         let details = "
         ".to_string();
         let trust_line = "You have a good conversation with Larissa. Despite her melancholy, you do the best to cheer her up, and 
         then finally you can see a faint smile on her face.\n
         You have gained Larissa's trust!\n
-        You have now the passive ability Exceptional Diplomacy. During trials, people may follow your lead even if you haven't gained 
-        their trust yet.\n
+        You have now the passive ability Hindsight. Upon corpse discoveries, you are also able to see when the murder happened.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 

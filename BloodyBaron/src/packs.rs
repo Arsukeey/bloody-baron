@@ -6,7 +6,8 @@ use crate::protag::Protag;
 pub enum IdleChoices {
     MoveRoom,
     TalkToCharacter,
-    ExamineCharacter
+    ExamineCharacter,
+    GoToRoom
 }
 
 #[derive(Clone)]

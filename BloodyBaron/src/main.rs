@@ -4,7 +4,6 @@ mod events;
 mod character;
 mod map;
 mod abilities;
-mod dialogue;
 mod ai;
 mod protag;
 
