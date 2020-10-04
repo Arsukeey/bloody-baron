@@ -9,7 +9,6 @@ use crate::packs::{
     IdlePack,
     MovementPack,
     TrustPack,
-    DialoguePack,
     AbilityPack,
     MurderPack,
     CorpseDiscoveryPack,
@@ -24,9 +23,7 @@ use crate::protag::Protag;
 pub enum EventType {
     Wildcard,
     Idle,
-    Dialogue,
     TrustGain,
-    TrustFail,
     Movement,
     Ability,
     Murder,
@@ -43,8 +40,7 @@ pub struct Event<'a, 'b, 'c> {
     pub event_type: EventType,
     pub idle_pack: Option<IdlePack>,
     pub movement_pack: Option<MovementPack>,
-    pub trust_pack: Option<TrustPack<'c>>,
-    pub dialogue_pack: Option<DialoguePack<'b>>,
+    pub trust_pack: Option<TrustPack>,
     pub ability_pack: Option<AbilityPack<'a, 'b>>,
     pub murder_pack: Option<MurderPack<'a, 'b>>,
     pub corpse_discovery_pack: Option<CorpseDiscoveryPack<'a, 'c>>,
@@ -65,7 +61,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             idle_pack: None,
             movement_pack: None,
             trust_pack: None,
-            dialogue_pack: None,
             ability_pack: None,
             murder_pack: None,
             corpse_discovery_pack: None,
@@ -107,7 +102,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             idle_pack: Some(IdlePack::starter(&game_data.map, &game_data.characters)),
             movement_pack: None,
             trust_pack: None,
-            dialogue_pack: None,
             ability_pack: None,
             murder_pack: None,
             corpse_discovery_pack: None,
@@ -204,7 +198,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
-                                dialogue_pack: None,
                                 ability_pack: None,
                                 murder_pack: None,
                                 corpse_discovery_pack: None,
@@ -222,7 +215,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 idle_pack: self.idle_pack.clone(),
                                 movement_pack: None,
                                 trust_pack: None,
-                                dialogue_pack: None,
                                 ability_pack: None,
                                 murder_pack: None,
                                 corpse_discovery_pack: None,
@@ -252,7 +244,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                         idle_pack: None,
                                         movement_pack: Some(new_pack),
                                         trust_pack: None,
-                                        dialogue_pack: None,
                                         ability_pack: None,
                                         murder_pack: None,
                                         corpse_discovery_pack: None,
@@ -283,7 +274,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
 
                             }),
                             trust_pack: None,
-                            dialogue_pack: None,
                             ability_pack: None,
                             murder_pack: None,
                             corpse_discovery_pack: None,
@@ -300,15 +290,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 }
             },
 
-            EventType::Dialogue => {
-                vec![]
-            },
-
             EventType::TrustGain => {
-                vec![]
-            },
-
-            EventType::TrustFail => {
                 vec![]
             },
 
@@ -339,7 +321,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         }),
                         movement_pack: None,
                         trust_pack: None,
-                        dialogue_pack: None,
                         ability_pack: None,
                         murder_pack: None,
                         corpse_discovery_pack: None,

@@ -60,26 +60,8 @@ pub struct MovementPack {
     pub move_index: RoomType
 }
 
-pub struct TrustPack<'c> {
-    pub protag: &'c mut Protag,
+pub struct TrustPack {
     pub character_index: usize,
-    pub success: bool
-}
-
-impl<'c> TrustPack<'c> {
-    pub fn execute(&mut self) -> bool {
-        if self.success {
-            self.protag.trust_table[self.character_index] = true
-        }
-
-        self.success
-    }
-}
-
-pub struct DialoguePack<'b> {
-    pub character: &'b mut Character,
-    pub line: String,
-    pub choices: Vec<String>,
 }
 
 pub struct AbilityPack<'a, 'b> {
