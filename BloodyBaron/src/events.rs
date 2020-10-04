@@ -24,7 +24,7 @@ pub enum EventType {
     TrustGain,
     Movement,
     Ability,
-    Murder,
+    CorpseDiscovery,
     TrialStart,
     TrialVoting,
     TrialExecution,
@@ -483,7 +483,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 vec![]
             },
 
-            EventType::Murder => {
+            EventType::CorpseDiscovery => {
                 vec![]
             },
 
