@@ -78,7 +78,3 @@ impl<'b> TrialExecutionPack<'b> {
         self.executed_char.is_alive = false;
     }
 }
-
-pub struct VictoryPack;
-
-pub struct GameOverPack;

@@ -15,8 +15,6 @@ use crate::packs::{
     TrialStartPack,
     TrialVotingPack,
     TrialExecutionPack,
-    VictoryPack,
-    GameOverPack
 };
 use crate::protag::Protag;
 
@@ -47,8 +45,6 @@ pub struct Event<'a, 'b, 'c> {
     pub trial_start_pack: Option<TrialStartPack>,
     pub trial_voting_pack: Option<TrialVotingPack>,
     pub trial_execution_pack: Option<TrialExecutionPack<'b>>,
-    pub victory_pack: Option<VictoryPack>,
-    pub game_over_pack: Option<GameOverPack>,
     pub wildcard_line: String
 }
 
@@ -67,8 +63,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             trial_start_pack: None,
             trial_voting_pack: None,
             trial_execution_pack: None,
-            victory_pack: None,
-            game_over_pack: None,
             wildcard_line: "This is an experimental detective text adventure.\n
             You are stuck in a building with nine people, and there's a murderer between them.\n
             For each round, which lasts for 30 in-game minutes, you'll be able to move 
@@ -108,8 +102,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             trial_start_pack: None,
             trial_voting_pack: None,
             trial_execution_pack: None,
-            victory_pack: None,
-            game_over_pack: None,
             wildcard_line: String::new()
         }
     }
@@ -201,8 +193,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_start_pack: None,
                                 trial_voting_pack: None,
                                 trial_execution_pack: None,
-                                victory_pack: None,
-                                game_over_pack: None,
                                 wildcard_line: game_data.characters[chars_indices[choice as usize]].details.clone()
                             },
                             Event {
@@ -218,8 +208,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_start_pack: None,
                                 trial_voting_pack: None,
                                 trial_execution_pack: None,
-                                victory_pack: None,
-                                game_over_pack: None,
                                 wildcard_line: String::new()
                             }
                         ]
@@ -240,8 +228,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                             trial_start_pack: None,
                             trial_voting_pack: None,
                             trial_execution_pack: None,
-                            victory_pack: None,
-                            game_over_pack: None,
                             wildcard_line: String::new()
                         }];
                     },
@@ -269,8 +255,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                             trial_start_pack: None,
                             trial_voting_pack: None,
                             trial_execution_pack: None,
-                            victory_pack: None,
-                            game_over_pack: None,
                             wildcard_line: String::new()
                         });
 
@@ -308,8 +292,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         trial_start_pack: None,
                         trial_voting_pack: None,
                         trial_execution_pack: None,
-                        victory_pack: None,
-                        game_over_pack: None,
                         wildcard_line: String::new()
                     });
                 
@@ -339,8 +321,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         trial_start_pack: None,
                         trial_voting_pack: None,
                         trial_execution_pack: None,
-                        victory_pack: None,
-                        game_over_pack: None,
                         wildcard_line: String::new()
                     }
                 ]
@@ -367,10 +347,15 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             },
 
             EventType::Victory => {
+                println!("After a safe night, the remaining people find themselves reunited in the main hall.\n
+                It seems that no murder attempt has happened tonight!\n
+                Yay! You caught the real killer!");
+                self.wait_enter();
                 vec![]
             },
 
             EventType::GameOver => {
+                
                 vec![]
             }
         }
@@ -398,8 +383,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         trial_start_pack: None,
                         trial_voting_pack: None,
                         trial_execution_pack: None,
-                        victory_pack: None,
-                        game_over_pack: None,
                         wildcard_line: String::new()
                     });
                 },
