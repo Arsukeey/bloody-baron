@@ -27,6 +27,9 @@ impl IdlePack {
         // initialize first room here
         for i in 0..NUMBER_OF_CHARS {
             chars_indices.push(i);
+            room_indices.push(i);
+            chars_indices.push(i);
+            room_indices.push(i);
             choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
             events.push(IdleChoices::TalkToCharacter);
             choices.push(format!("{}{}{}", "Examine ", characters[i].name, "'s profile"));
@@ -34,6 +37,7 @@ impl IdlePack {
         }
         for i in 0..NUMBER_OF_ROOMS {
             if map.adjacency[0][i] == 1 {
+                chars_indices.push(i);
                 room_indices.push(i);
                 events.push(IdleChoices::MoveRoom);
                 choices.push(format!("Go to the {}", RoomTable[i]));

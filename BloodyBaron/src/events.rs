@@ -87,9 +87,9 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             after the corpse is discovered by you, a trial 
             will happen, and you'll vote in order to execute someone. People who trust in you are likely to vote for 
             the same as you, and people will vote for those who they have the least affinity with.\n
-            During night, you need to be extra careful, because if someone meets the killer, they're 
+            During nighttime (22:00 to 6:30), you need to be extra careful, because if someone meets the killer, they're 
             instantly dead.\n
-            You have the option to stay locked in your room during night and sleep, and you'll be safe, 
+            You have the option to stay locked in your room during nighttime and sleep, and you'll be safe, 
             but someone always dies during the night, so, be prepared to look for a corpse after dawn.\n\n
             Simply put, talk to people to build trust, use the abilities wisely and your logical thinking 
             to find out who's the killer, and don't get killed yourself.\n
@@ -124,6 +124,16 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         match self.event_type {
             EventType::Wildcard => {
                 println!("{}", self.wildcard_line);
+                let mut stdout = stdout();
+                let mut stdin = stdin();
+
+                write!(stdout, "Press Enter to continue... ").unwrap();
+                stdout.flush().unwrap();
+
+                    // Read a single byte and discard
+                let mut buffer = [0u8];
+                let _ = stdin.read(&mut buffer).unwrap();
+
                 vec![]
             }
 
@@ -183,7 +193,8 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                     }
                 }
                 let choice = buffer.trim().parse::<u8>().unwrap() - 1;
-                match self.idle_pack.as_ref().unwrap().events[choice as usize] {
+                let pack = self.idle_pack.as_ref().unwrap();
+                match pack.events[choice as usize] {
                     IdleChoices::ExamineCharacter => {
                         return vec![
                             Event {
@@ -202,7 +213,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_execution_pack: None,
                                 victory_pack: None,
                                 game_over_pack: None,
-                                wildcard_line: game_data.characters[choice as usize / 2].details.clone()
+                                wildcard_line: game_data.characters[pack.chars_indices[choice as usize]].details.clone()
                             },
                             Event {
                                 timestamp_hours: self.timestamp_hours,
@@ -220,7 +231,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_execution_pack: None,
                                 victory_pack: None,
                                 game_over_pack: None,
-                                wildcard_line: game_data.characters[choice as usize].details.clone()
+                                wildcard_line: String::new()
                             }
                         ]
                     },
@@ -239,7 +250,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: Some(MovementPack{
                                     protag_moves: true,
                                     move_origin: location,
-                                    move_index: FromPrimitive::from_u8(choice - chars_in_rooms[location as usize].len() as u8 * 2).unwrap(),
+                                    move_index: FromPrimitive::from_usize(pack.room_indices[choice as usize]).unwrap(),
                                     character_index: 0,
 
                                 }),
@@ -273,12 +284,13 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             },
 
             EventType::Movement => {
+                self.movement(&mut game_data.map, &mut game_data.characters, &mut game_data.protag);
                 self.update_timestamps();
                 let mut choices = vec![];
                 let mut events = vec![];
                 let mut chars_indices = vec![];
                 let mut room_indices = vec![];
-                self.create_choices(&mut game_data.map, &mut game_data.characters, &mut choices, &mut events, &mut chars_indices, &mut room_indices);
+                self.create_choices(&mut game_data.map, &mut game_data.characters, &mut game_data.protag, &mut choices, &mut events, &mut chars_indices, &mut room_indices);
 
                 let pack = self.movement_pack.as_mut().unwrap();
                 if !pack.protag_moves {
@@ -342,11 +354,23 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-
+    pub fn movement(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>, protag: &mut Box<Protag>) {
+        let pack = self.movement_pack.as_ref().unwrap();
+        if pack.protag_moves {
+            protag.location = pack.move_index
+        }
+        else {
+            let index = map.chars_in_rooms[pack.move_origin as usize]
+                .iter().position(|x| *x == characters[pack.character_index].name).unwrap();
+            map.chars_in_rooms[pack.move_origin as usize].remove(index);
+            map.chars_in_rooms[pack.move_index as usize].push(characters[pack.character_index].name.clone());
+        }
+    }
 
     pub fn create_choices(&mut self,
         map: &mut Box<Map>,
         characters: &mut Vec<Character>,
+        protag: &mut Box<Protag>,
         choices: &mut Vec<String>,
         events: &mut Vec<IdleChoices>,
         chars_indices: &mut Vec<usize>,
@@ -355,6 +379,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         for i in 0..NUMBER_OF_CHARS {
             if map.chars_in_rooms[pack.move_index as usize].contains(&characters[i].name) && characters[i].is_alive {
                 chars_indices.push(i);
+                room_indices.push(i);
                 choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
                 events.push(IdleChoices::TalkToCharacter);
                 choices.push(format!("{}{}{}", "Examine ", characters[i].name, "'s profile"));
@@ -362,7 +387,8 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             }
         }
         for i in 0..NUMBER_OF_ROOMS {
-            if map.adjacency[0][i] == 1 {
+            if map.adjacency[protag.location as usize][i] == 1 {
+                chars_indices.push(i);
                 room_indices.push(i);
                 events.push(IdleChoices::MoveRoom);
                 choices.push(format!("Go to the {}", RoomTable[i]));
