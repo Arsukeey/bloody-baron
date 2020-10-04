@@ -3,7 +3,7 @@ use num_derive::FromPrimitive;
 
 pub const NUMBER_OF_ROOMS: usize = 8;
 
-pub const RoomTable: [&str; NUMBER_OF_ROOMS] = [
+pub const RoomTable: [&str; NUMBER_OF_ROOMS+1] = [
     "Main Hall",
     "Bathroom",
     "Kitchen",
@@ -11,7 +11,8 @@ pub const RoomTable: [&str; NUMBER_OF_ROOMS] = [
     "Inn Hallway",
     "Library",
     "Trash Room",
-    "Shed"
+    "Shed",
+    "Bedroom"
 ];
 
 #[derive(Copy, Clone, FromPrimitive)]

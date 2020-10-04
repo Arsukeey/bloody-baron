@@ -4,7 +4,8 @@ use crate::map::{RoomType};
 #[derive(Copy, Clone)]
 pub struct Protag {
     pub trust_table: [bool; NUMBER_OF_CHARS],
-    pub location: RoomType
+    pub location: RoomType,
+    pub moved: bool
 }
 
 impl Protag {
@@ -13,7 +14,8 @@ impl Protag {
         let location = RoomType::MainHall;
         Self {
             trust_table,
-            location
+            location,
+            moved: false
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::map::Map;
+use crate::map::{Map, RoomTable, NUMBER_OF_ROOMS};
 use crate::abilities::*;
 use crate::ai::AI;
 
@@ -12,7 +12,8 @@ pub struct Character {
     pub ability: fn(Vec<Character>, &Map) -> (),
     pub ai: AI,
     pub details: String,
-    pub trust_line: String
+    pub trust_line: String,
+    pub last_positions: [&'static str; 3],
     // pub dialogue: fn(&Character, Vec<Character>, &Map) -> ()
 }
 
@@ -38,6 +39,7 @@ impl Character {
         You gained Freya's trust!\n
         You can now use the ability Investigate. It lets you know where a person has been for the last hour and a half.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -46,7 +48,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -71,7 +74,8 @@ impl Character {
         You can now use the ability Celestial Call. It lets you act like an angel and protect one person for an entire day. 
         This person won't die for the next 24 hours. You can't use this on yourself.\n
         ".to_string();
-        
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
+    
         Self {
             name,
             is_alive,
@@ -79,7 +83,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -102,6 +107,7 @@ impl Character {
         You can now use the ability Overhear. Sharp catgirl listening skills can help you determine who's in nearby rooms 
         in advance. Very useful when exploring at nighttime.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -110,7 +116,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -133,6 +140,7 @@ impl Character {
         You have now the passive ability Perfect Bluff. From now on, the other characters will move and take decisions according to a 
         suboptimal pattern.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -141,7 +149,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -163,6 +172,7 @@ impl Character {
         You have gained Amanda's trust!\n
         You can now use the ability Pick Lock. When exploring the Inn Hallway at night, you can check who is in their room and who isn't.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -171,7 +181,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -189,6 +200,7 @@ impl Character {
         You can now use the ability Pitiful Begging. When alone with someone in your room, you can beg on your knees for your life. 
         If that someone is the killer, they'll spare you for the moment. Their identity won't be revealed, though.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -197,7 +209,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -215,6 +228,7 @@ impl Character {
         You have now the passive ability Exceptional Diplomacy. During trials, people may follow your lead even if you haven't gained 
         their trust yet.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -223,7 +237,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -241,6 +256,7 @@ impl Character {
         You can now use the ability Cold Execution. When alone with someone in a room, you may choose to kill that person. A trial 
         will follow soon after. If you murder the killer, though, you win the game.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -249,7 +265,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 
@@ -267,6 +284,7 @@ impl Character {
         You have now the passive ability Night Owl. From now on, meeting the killer at nighttime doesn't mean instant death. On other 
         words, nighttime for you is the same as daytime.\n
         ".to_string();
+        let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
         Self {
             name,
@@ -275,7 +293,8 @@ impl Character {
             ability,
             ai,
             details,
-            trust_line
+            trust_line,
+            last_positions
         }
     }
 }

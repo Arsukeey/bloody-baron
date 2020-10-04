@@ -71,7 +71,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             some of them are passive, some active, but all of them are helpful in order to
             solve the mistery.\n
             You can also check people's profiles before engaging in conversation with them.\n
-            During the day, if someone (including you) spends one hour alone with the killer in the same room, 
+            During the day, if someone (including you) spends half an hour alone with the killer in the same room, 
             this person dies. If you die, it's game over. If someone else dies, though, 
             after the corpse is discovered by you, a trial 
             will happen, and you'll vote in order to execute someone. People who trust in you are likely to vote for 
@@ -88,7 +88,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn start(game_data: &GameData) -> Self {
+    pub fn start() -> Self {
         Self {
             timestamp_hours: 7,
             timestamp_minutes: 0,
@@ -213,25 +213,66 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         ]
                     },
                     IdleChoices::TalkToCharacter => {
-                        return vec![Event{
-                            timestamp_hours: self.timestamp_hours,
-                            timestamp_minutes: self.timestamp_minutes,
-                            event_type: EventType::TrustGain,
-                            idle_pack: None,
-                            movement_pack: None,
-                            trust_pack: Some(TrustPack {
-                                character_index: chars_indices[choice as usize]
-                            }),
-                            ability_pack: None,
-                            murder_pack: None,
-                            corpse_discovery_pack: None,
-                            trial_start_pack: None,
-                            trial_voting_pack: None,
-                            trial_execution_pack: None,
-                            wildcard_line: String::new()
-                        }];
+                        game_data.protag.moved = false;
+                        self.check_murder(&mut game_data.map, &mut game_data.characters);
+                        if self.check_game_over(&mut game_data.map, &mut game_data.characters, &mut game_data.protag, self.timestamp_hours) {
+                            return vec![Event{
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::GameOver,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: String::new()
+                            }];
+                        }
+                        else {
+                            return vec![Event{
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::TrustGain,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: Some(TrustPack {
+                                    character_index: chars_indices[choice as usize]
+                                }),
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: String::new()
+                            }];
+                        }
                     },
                     IdleChoices::MoveRoom => {
+                        game_data.protag.moved = true;
+                        self.check_murder(&mut game_data.map, &mut game_data.characters);
+                        if self.check_game_over(&mut game_data.map, &mut game_data.characters, &mut game_data.protag, self.timestamp_hours) {
+                            return vec![Event{
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::GameOver,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                wildcard_line: String::new()
+                            }];
+                        }
+
                         let location = game_data.protag.location;
                         let mut ret = vec![];
                         self.enqueue_npc_movement(game_data, &mut ret);
@@ -350,12 +391,18 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 println!("After a safe night, the remaining people find themselves reunited in the main hall.\n
                 It seems that no murder attempt has happened tonight!\n
                 Yay! You caught the real killer!");
+                println!("Thanks for playing this game and well done.");
                 self.wait_enter();
                 vec![]
             },
 
             EventType::GameOver => {
-                
+                println!("Game over.");
+                println!("You were the last remaining person of the group, or the killer managed to caught you 
+                before you managed to solve this mistery, leading to you unavoidable death.");
+                println!("You were murdered by {}.", game_data.killer_name);
+                println!("Thanks for playing, and better luck next time, I guess.");
+                self.wait_enter();
                 vec![]
             }
         }
@@ -403,7 +450,72 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 .iter().position(|x| *x == characters[pack.character_index].name).unwrap();
             map.chars_in_rooms[pack.move_origin as usize].remove(index);
             map.chars_in_rooms[pack.move_index as usize].push(characters[pack.character_index].name.clone());
+            for i in 0..2 {
+                characters[pack.character_index].last_positions[i] = characters[pack.character_index].last_positions[i+1];
+            }
+            characters[pack.character_index].last_positions[2] = RoomTable[pack.move_origin as usize];
         }
+    }
+
+    pub fn check_murder(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>) {
+        for i in 0..map.chars_in_rooms.len() {
+            if map.chars_in_rooms[i].len() == 2 {
+                let index0 = characters.iter().position(|x| x.name == map.chars_in_rooms[i][0]).unwrap();
+                let index1 = characters.iter().position(|x| x.name == map.chars_in_rooms[i][1]).unwrap();
+                if characters[index0].last_positions[2] == RoomTable[i] && characters[index1].last_positions[2] == RoomTable[i] {
+                    if characters[index0].is_killer {
+                        characters[index1].is_alive = false;
+                        map.has_corpse[i] = true;
+                    }
+                    else if characters[index1].is_killer {
+                        characters[index0].is_alive = false;
+                        map.has_corpse[i] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn check_game_over(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>, protag: &mut Box<Protag>, timestamp_hours: u8) -> bool {
+        let mut alive_characters = 0;
+        for character in characters.clone() {
+            if character.is_alive {
+                alive_characters += 1;
+            }
+        }
+        if alive_characters == 1 {
+            // only one left game over
+            return true;
+        }
+        else if timestamp_hours >= 22 || timestamp_hours <= 6 {
+            // nighttime game over
+            for i in 0..map.chars_in_rooms[protag.location as usize].len() {
+                let index = characters.iter().position(|x| x.name == map.chars_in_rooms[protag.location as usize][i]).unwrap();
+                if characters[index].is_killer {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            // spending time with the killer
+            if map.chars_in_rooms[protag.location as usize].len() == 1 {
+                let index = characters.iter().position(|x| x.name == map.chars_in_rooms[protag.location as usize][0]).unwrap();
+                if characters[index].is_killer && !protag.moved {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    pub fn check_victory(&mut self, characters: &Vec<Character>) -> bool {
+        for character in characters {
+            if !character.is_alive && character.is_killer {
+                return true;
+            }
+        }
+        false
     }
 
     pub fn create_choices(&mut self,
@@ -443,6 +555,9 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             self.timestamp_minutes = 0;
             self.timestamp_hours += 1;
         }
+        if self.timestamp_hours >= 24 {
+            self.timestamp_hours = 0;
+        }
     }
 
     pub fn wait_enter(&self) {
@@ -472,7 +587,7 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
     pub fn new(game_data: &GameData) -> Self {
         let mut events = VecDeque::new();
         events.push_back(Event::introduction());
-        events.push_back(Event::start(game_data));
+        events.push_back(Event::start());
 
         Self {
             events
@@ -510,7 +625,8 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
 pub struct GameData {
     pub characters: Vec<Character>,
     pub map: Box<Map>,
-    pub protag: Box<Protag>
+    pub protag: Box<Protag>,
+    pub killer_name: String
 }
 
 impl GameData {
@@ -530,12 +646,14 @@ impl GameData {
 
         let random_uint = rand::random::<usize>() % NUMBER_OF_CHARS;
         characters[random_uint].is_killer = true;
+        let killer_name = characters[random_uint].name.clone();
 
         let protag = Box::new(Protag::new());
         Self {
             map,
             characters,
-            protag
+            protag,
+            killer_name
         }
     }
 }
