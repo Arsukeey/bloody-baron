@@ -16,7 +16,7 @@ pub struct Character {
 }
 
 impl Character {
-    pub fn freya(map: &Map) -> Self {
+    pub fn freya(map: &Box<Map>) -> Self {
         let name = "Freya".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -43,7 +43,7 @@ impl Character {
         }
     }
 
-    pub fn ravi(map: &Map) -> Self {
+    pub fn ravi(map: &Box<Map>) -> Self {
         let name = "Ravi".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -69,7 +69,7 @@ impl Character {
         }
     }
 
-    pub fn luna(map: &Map) -> Self {
+    pub fn luna(map: &Box<Map>) -> Self {
         let name = "Luna".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -93,7 +93,7 @@ impl Character {
         }
     }
 
-    pub fn john(map: &Map) -> Self {
+    pub fn john(map: &Box<Map>) -> Self {
         let name = "John".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -117,7 +117,7 @@ impl Character {
         }
     }
 
-    pub fn amanda(map: &Map) -> Self {
+    pub fn amanda(map: &Box<Map>) -> Self {
         let name = "Amanda".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -141,7 +141,7 @@ impl Character {
         }
     }
 
-    pub fn vincent(map: &Map) -> Self {
+    pub fn vincent(map: &Box<Map>) -> Self {
         let name = "Vincent".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -160,7 +160,7 @@ impl Character {
         }
     }
 
-    pub fn larissa(map: &Map) -> Self {
+    pub fn larissa(map: &Box<Map>) -> Self {
         let name = "Larissa".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -179,7 +179,7 @@ impl Character {
         }
     }
 
-    pub fn chio(map: &Map) -> Self {
+    pub fn chio(map: &Box<Map>) -> Self {
         let name = "Chio".to_string();
         let is_alive = true;
         let is_killer = false;
@@ -198,7 +198,7 @@ impl Character {
         }
     }
 
-    pub fn odette(map: &Map) -> Self {
+    pub fn odette(map: &Box<Map>) -> Self {
         let name = "Odette".to_string();
         let is_alive = true;
         let is_killer = false;

@@ -240,33 +240,62 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                     },
                     IdleChoices::MoveRoom => {
                         let location = game_data.protag.location;
-                        let chars_in_rooms = game_data.map.chars_in_rooms.clone();
-                        return vec![
-                            Event {
-                                timestamp_hours: self.timestamp_hours,
-                                timestamp_minutes: self.timestamp_minutes,
-                                event_type: EventType::Movement,
-                                idle_pack: None,
-                                movement_pack: Some(MovementPack{
-                                    protag_moves: true,
-                                    move_origin: location,
-                                    move_index: FromPrimitive::from_usize(pack.room_indices[choice as usize]).unwrap(),
-                                    character_index: 0,
-
-                                }),
-                                trust_pack: None,
-                                dialogue_pack: None,
-                                ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
-                                victory_pack: None,
-                                game_over_pack: None,
-                                wildcard_line: String::new()
+                        let mut ret = vec![];
+                        for i in 0..game_data.characters.len() {
+                            let self_char = game_data.characters[i].clone();
+                            match game_data.characters[i].ai.choose_movement(game_data.map.clone(), self_char, i) {
+                                Some(new_pack) => {
+                                    ret.push(Event {
+                                        timestamp_hours: self.timestamp_hours,
+                                        timestamp_minutes: self.timestamp_minutes,
+                                        event_type: EventType::Movement,
+                                        idle_pack: None,
+                                        movement_pack: Some(new_pack),
+                                        trust_pack: None,
+                                        dialogue_pack: None,
+                                        ability_pack: None,
+                                        murder_pack: None,
+                                        corpse_discovery_pack: None,
+                                        trial_start_pack: None,
+                                        trial_voting_pack: None,
+                                        trial_execution_pack: None,
+                                        victory_pack: None,
+                                        game_over_pack: None,
+                                        wildcard_line: String::new()
+                                    });
+                                },
+                                _ => {
+                                    ()
+                                }
                             }
-                        ];
+                        }
+
+                        ret.push(Event {
+                            timestamp_hours: self.timestamp_hours,
+                            timestamp_minutes: self.timestamp_minutes,
+                            event_type: EventType::Movement,
+                            idle_pack: None,
+                            movement_pack: Some(MovementPack{
+                                protag_moves: true,
+                                move_origin: location,
+                                move_index: FromPrimitive::from_usize(pack.room_indices[choice as usize]).unwrap(),
+                                character_index: 0,
+
+                            }),
+                            trust_pack: None,
+                            dialogue_pack: None,
+                            ability_pack: None,
+                            murder_pack: None,
+                            corpse_discovery_pack: None,
+                            trial_start_pack: None,
+                            trial_voting_pack: None,
+                            trial_execution_pack: None,
+                            victory_pack: None,
+                            game_over_pack: None,
+                            wildcard_line: String::new()
+                        });
+
+                        ret
                     }
                 }
             },
@@ -378,6 +407,8 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         let pack = self.movement_pack.as_ref().unwrap();
         for i in 0..NUMBER_OF_CHARS {
             if map.chars_in_rooms[pack.move_index as usize].contains(&characters[i].name) && characters[i].is_alive {
+                chars_indices.push(i);
+                room_indices.push(i);
                 chars_indices.push(i);
                 room_indices.push(i);
                 choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
