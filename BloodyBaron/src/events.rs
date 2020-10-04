@@ -59,7 +59,7 @@ impl Event {
             between rooms and talk to people, and try and gain their trust.\n
             If you gain someone's trust, you'll acquire a new ability associated with that person, 
             some of them are passive, some active, but all of them are helpful in order to
-            solve the mistery.\n
+            solve the mystery.\n
             You can also check people's profiles before engaging in conversation with them.\n
             During the day, if someone (including you) spends half an hour alone with the killer in the same room, 
             this person dies. If you die, it's game over. If someone else dies, though, 
