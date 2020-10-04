@@ -24,6 +24,14 @@ pub struct TrustPack {
     pub character_index: usize,
 }
 
+pub struct VotingPack {
+    pub choice_name: String
+}
+
+pub struct ExecutionPack {
+    pub choice_name: String
+}
+
 pub struct AbilityPack {
     pub name: String,
     pub chars: Vec<Character>

@@ -1,5 +1,5 @@
 use std::io::{stdin, stdout, Read, Write};
-use std::collections::VecDeque;
+use std::collections::{VecDeque, HashMap};
 use num_traits::FromPrimitive;
 
 use crate::character::{Character, NUMBER_OF_CHARS};
@@ -9,6 +9,8 @@ use crate::packs::{
     IdlePack,
     MovementPack,
     TrustPack,
+    VotingPack,
+    ExecutionPack,
     AbilityPack
 };
 use crate::protag::Protag;
@@ -34,6 +36,8 @@ pub struct Event {
     pub idle_pack: Option<IdlePack>,
     pub movement_pack: Option<MovementPack>,
     pub trust_pack: Option<TrustPack>,
+    pub voting_pack: Option<VotingPack>,
+    pub execution_pack: Option<ExecutionPack>,
     pub ability_pack: Option<AbilityPack>,
     pub wildcard_line: String
 }
@@ -47,6 +51,8 @@ impl Event {
             idle_pack: None,
             movement_pack: None,
             trust_pack: None,
+            voting_pack: None,
+            execution_pack: None,
             ability_pack: None,
             wildcard_line: "This is an experimental detective text adventure.\n
             You are stuck in a building with nine people, and there's a murderer between them.\n
@@ -81,6 +87,8 @@ impl Event {
             idle_pack: Some(IdlePack{}),
             movement_pack: None,
             trust_pack: None,
+            voting_pack: None,
+            execution_pack: None,
             ability_pack: None,
             wildcard_line: String::new()
         }
@@ -203,6 +211,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: game_data.characters[chars_indices[choice as usize]].details.clone()
                             },
@@ -213,6 +223,8 @@ impl Event {
                                 idle_pack: self.idle_pack.clone(),
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             }
@@ -229,6 +241,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             }];
@@ -243,6 +257,8 @@ impl Event {
                                 trust_pack: Some(TrustPack {
                                     character_index: chars_indices[choice as usize]
                                 }),
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             }];
@@ -259,6 +275,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             }];
@@ -281,6 +299,8 @@ impl Event {
 
                             }),
                             trust_pack: None,
+                            voting_pack: None,
+                            execution_pack: None,
                             ability_pack: None,
                             wildcard_line: String::new()
                         });
@@ -293,6 +313,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             });
@@ -310,6 +332,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: "You went back to your room and locked the door.
                                 You have a good night of sleep.\n
@@ -322,6 +346,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: "Nighttime is now over, it's 7 o'clock.
                                 You leave your room and prepare to meet the other people in the Main Hall.\n
@@ -337,6 +363,8 @@ impl Event {
                                 idle_pack: None,
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             });
@@ -350,6 +378,8 @@ impl Event {
                                 idle_pack: Some(IdlePack{}),
                                 movement_pack: None,
                                 trust_pack: None,
+                                voting_pack: None,
+                                execution_pack: None,
                                 ability_pack: None,
                                 wildcard_line: String::new()
                             });
@@ -382,6 +412,8 @@ impl Event {
                         idle_pack: Some(IdlePack {}),
                         movement_pack: None,
                         trust_pack: None,
+                        voting_pack: None,
+                        execution_pack: None,
                         ability_pack: None,
                         wildcard_line: String::new()
                     });
@@ -394,7 +426,7 @@ impl Event {
                 self.update_timestamps();
 
                 let pack = self.movement_pack.as_mut().unwrap();
-                if !pack.protag_moves {
+                if !pack.protag_moves || game_data.map.has_corpse[game_data.protag.location as usize] != "" {
                     return vec![];
                 }
 
@@ -406,6 +438,8 @@ impl Event {
                         idle_pack: Some(IdlePack {}),
                         movement_pack: None,
                         trust_pack: None,
+                        voting_pack: None,
+                        execution_pack: None,
                         ability_pack: None,
                         wildcard_line: String::new()
                     }
@@ -437,6 +471,8 @@ impl Event {
                         idle_pack: None,
                         movement_pack: None,
                         trust_pack: None,
+                        voting_pack: None,
+                        execution_pack: None,
                         ability_pack: None,
                         wildcard_line: String::new()
                     }
@@ -475,15 +511,141 @@ impl Event {
                         index += 1;
                     }
                 }
-                vec![]
+                // get input
+                let mut buffer = String::new();
+                loop {
+                    stdin().read_line(&mut buffer).expect("Couldn't read input from stdin.");
+                    let parse_result = buffer.trim().parse::<u8>();
+                    println!("{}", buffer);
+                    match parse_result {
+                        Ok(i) => {
+                            if i > 0 && i < index as u8 {
+                                break
+                            }
+                            else {
+                                print!("Please input a valid index. ");
+                            }
+                        },
+                        Err(..) => {
+                            print!("Please input an acceptable integer. ");
+                        }
+                    }
+                }
+                let choice = buffer.trim().parse::<u8>().unwrap() - 1;
+
+                index = 0;
+                let mut choice_name = String::new();
+                for i in 0..game_data.characters.len() {
+                    if game_data.characters[i].is_alive {
+                        if index == choice {
+                            choice_name = game_data.characters[i].name.clone();
+                        }
+                        index += 1;
+                    }
+                }
+
+                vec![
+                    Event {
+                        timestamp_hours: self.timestamp_hours,
+                        timestamp_minutes: self.timestamp_minutes,
+                        event_type: EventType::TrialVoting,
+                        idle_pack: None,
+                        movement_pack: None,
+                        trust_pack: None,
+                        voting_pack: Some(VotingPack {
+                            choice_name
+                        }),
+                        execution_pack: None,
+                        ability_pack: None,
+                        wildcard_line: String::new()
+                    }
+                ]
             },
 
             EventType::TrialVoting => {
-                vec![]
+                println!("You were the first to cast your vote. You voted for {}", self.voting_pack.as_ref().unwrap().choice_name);
+                let mut vote_table: HashMap<String, u32> = HashMap::new();
+
+                for i in 0..game_data.characters.len() {
+                    if game_data.characters[i].is_alive {
+                        vote_table.insert(game_data.characters[i].name.clone(), 0);
+                    }
+                }
+                let count = vote_table.get_mut(&self.voting_pack.as_ref().unwrap().choice_name).unwrap();
+                *count += 1;
+
+                for i in 0..game_data.characters.len() {
+                    if game_data.characters[i].is_alive {
+                        if game_data.protag.trust_table[i] && self.voting_pack.as_ref().unwrap().choice_name != game_data.characters[i].name {
+                            let count = vote_table.get_mut(&self.voting_pack.as_ref().unwrap().choice_name).unwrap();
+                            *count += 1;
+                        }
+                        else {
+                            use rand::random;
+                            let mut cast = random::<usize>() % NUMBER_OF_CHARS;
+                            while cast == i || !game_data.characters[cast].is_alive {
+                                cast += 1;
+                            }
+                            let count = vote_table.get_mut(&game_data.characters[cast].name).unwrap();
+                            *count += 1;
+                        }
+                    }
+                }
+
+                let mut max_val = 0;
+                let mut max_key = "";
+                for (k, v) in vote_table.iter() {
+                    if *v > max_val {
+                        max_key = k;
+                        max_val = *v;
+                    }
+                }
+
+                vec![
+                    Event {
+                        timestamp_hours: self.timestamp_hours,
+                        timestamp_minutes: self.timestamp_minutes,
+                        event_type: EventType::TrialExecution,
+                        idle_pack: None,
+                        movement_pack: None,
+                        trust_pack: None,
+                        voting_pack: None,
+                        execution_pack: Some(ExecutionPack{
+                            choice_name: max_key.to_string()
+                        }),
+                        ability_pack: None,
+                        wildcard_line: String::new()
+                    }
+                ]
             },
 
             EventType::TrialExecution => {
-                vec![]
+                let pack = self.execution_pack.as_ref().unwrap();
+                println!("The crowd has voted to execute {}.", pack.choice_name);
+                let index = game_data.characters.iter().position(|x| x.name == pack.choice_name).unwrap();
+                game_data.characters[index].is_alive = false;
+                println!("After a grotesque but necessary ritual, the other voters try to drive their minds 
+                away form it and go back to their activities.");
+                for i in 0..game_data.map.chars_in_rooms.len() {
+                    for j in 0..game_data.map.chars_in_rooms[i].len() {
+                        if game_data.map.chars_in_rooms[i][j] == pack.choice_name {
+                            game_data.map.chars_in_rooms[i].remove(j);
+                        }
+                    }
+                }
+                self.update_timestamps();
+                vec![Event {
+                    timestamp_hours: self.timestamp_hours,
+                    timestamp_minutes: self.timestamp_minutes,
+                    event_type: EventType::Idle,
+                    idle_pack: Some(IdlePack {}),
+                    movement_pack: None,
+                    trust_pack: None,
+                    voting_pack: None,
+                    execution_pack: None,
+                    ability_pack: None,
+                    wildcard_line: String::new()
+                }]
             },
 
             EventType::Victory => {
@@ -523,6 +685,8 @@ impl Event {
                         idle_pack: None,
                         movement_pack: Some(new_pack),
                         trust_pack: None,
+                        voting_pack: None,
+                        execution_pack: None,
                         ability_pack: None,
                         wildcard_line: String::new()
                     });
