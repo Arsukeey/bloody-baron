@@ -10,48 +10,7 @@ pub enum IdleChoices {
 }
 
 #[derive(Clone)]
-pub struct IdlePack {
-    pub choices: Vec<String>,
-    pub events: Vec<IdleChoices>,
-    pub chars_indices: Vec<usize>,
-    pub room_indices: Vec<usize>,
-}
-
-impl IdlePack {
-    pub fn starter(map: &Box<Map>, characters: &Vec<Character>) -> Self {
-        let mut choices = vec![];
-        let mut events = vec![];
-        let mut chars_indices = vec![];
-        let mut room_indices = vec![];
-
-        // initialize first room here
-        for i in 0..NUMBER_OF_CHARS {
-            chars_indices.push(i);
-            room_indices.push(i);
-            chars_indices.push(i);
-            room_indices.push(i);
-            choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
-            events.push(IdleChoices::TalkToCharacter);
-            choices.push(format!("{}{}{}", "Examine ", characters[i].name, "'s profile"));
-            events.push(IdleChoices::ExamineCharacter);
-        }
-        for i in 0..NUMBER_OF_ROOMS {
-            if map.adjacency[0][i] == 1 {
-                chars_indices.push(i);
-                room_indices.push(i);
-                events.push(IdleChoices::MoveRoom);
-                choices.push(format!("Go to the {}", RoomTable[i]));
-            }
-        }
-
-        Self {
-            choices,
-            events,
-            chars_indices,
-            room_indices
-        }
-    }
-}
+pub struct IdlePack;
 
 pub struct MovementPack {
     pub protag_moves: bool,

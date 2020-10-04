@@ -11,7 +11,8 @@ pub struct Character {
     pub is_killer: bool,
     pub ability: fn(Vec<Character>, &Map) -> (),
     pub ai: AI,
-    pub details: String
+    pub details: String,
+    pub trust_line: String
     // pub dialogue: fn(&Character, Vec<Character>, &Map) -> ()
 }
 
@@ -32,6 +33,11 @@ impl Character {
         Personality: Freya is cold and is usually caught wandering in thoughts, even during conversations. 
         If you want to befriend her, you should be prepared to go through long moments of silence.\n
         ".to_string();
+        let trust_line = "After spending some moments of awkward silence with Freya, composed of short intervals of conversation, 
+        she seems to like you a little bit better.\n
+        You gained Freya's trust!\n
+        You can now use the ability Investigate. It lets you know where a person has been for the last hour and a half.\n
+        ".to_string();
 
         Self {
             name,
@@ -39,7 +45,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -58,6 +65,12 @@ impl Character {
         Personality: Ravi is known to be very calm and gentle, and easy to befriend. But he's also known to be pretty sharp 
         when it comes to feelings. Expect he won't be fooled or manipulated easily.\n
         ".to_string();
+        let trust_line = "After talking to Ravi about how life used to be before you two got locked up here, you two finally 
+        seem to be getting closer.\n
+        You have gained Ravi's trust!\n
+        You can now use the ability Celestial Call. It lets you act like an angel and protect one person for an entire day. 
+        This person won't die for the next 24 hours. You can't use this on yourself.\n
+        ".to_string();
         
         Self {
             name,
@@ -65,7 +78,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -82,6 +96,12 @@ impl Character {
         Personality: expect cheerfullness and some blissful innocence from Luna. It's rather easy to gain her trust, but hurting 
         her feelings even so slightly can make her throw a tantrum.\n
         ".to_string();
+        let trust_line = "After some small talk with Luna and having to withstand her idiosyncrasies, you realize you two became 
+        friends in basically no time at all.\n
+        You gained Luna's trust!\n
+        You can now use the ability Overhear. Sharp catgirl listening skills can help you determine who's in nearby rooms 
+        in advance. Very useful when exploring at nighttime.\n
+        ".to_string();
 
         Self {
             name,
@@ -89,7 +109,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -106,6 +127,12 @@ impl Character {
         Personality: John is known to be very hyped about competition and somewhat narcisistic. You'll have to go through some bragging 
         if you want to befriend him.\n
         ".to_string();
+        let trust_line = "John brags to you about his life achievements for about an hour. It was a tough time having to go through 
+        this, but after some nodding, John seems to like the fact that you listened.\n
+        You have gained John's trust!\n
+        You have now the passive ability Perfect Bluff. From now on, the other characters will move and take decisions according to a 
+        suboptimal pattern.\n
+        ".to_string();
 
         Self {
             name,
@@ -113,7 +140,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -130,6 +158,11 @@ impl Character {
         Personality: Amanda won't probably be a fan of conversation, unless you wanna talk about she's good at. You could say she's 
         a simple person. Just don't piss her off, though.\n
         ".to_string();
+        let trust_line = "Amanda looks down on you for some moments and is reluctant to talk at first, but after some time, she lets 
+        it go and talks to you about warfare. You don't understand much she's saying, though.\n
+        You have gained Amanda's trust!\n
+        You can now use the ability Pick Lock. When exploring the Inn Hallway at night, you can check who is in their room and who isn't.\n
+        ".to_string();
 
         Self {
             name,
@@ -137,7 +170,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -149,6 +183,12 @@ impl Character {
         let ai = AI::new(map);
         let details = "
         ".to_string();
+        let trust_line = "You hear Vincent whine about his current situation and express his entitlement to you for about an hour. 
+        It was painful, but you did your best. He seems to be fond of you now.\n
+        You have gained Vincent's trust!\n
+        You can now use the ability Pitiful Begging. When alone with someone in your room, you can beg on your knees for your life. 
+        If that someone is the killer, they'll spare you for the moment. Their identity won't be revealed, though.\n
+        ".to_string();
 
         Self {
             name,
@@ -156,7 +196,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -168,6 +209,12 @@ impl Character {
         let ai = AI::new(map);
         let details = "
         ".to_string();
+        let trust_line = "You have a good conversation with Larissa. Despite her melancholy, you do the best to cheer her up, and 
+        then finally you can see a faint smile on her face.\n
+        You have gained Larissa's trust!\n
+        You have now the passive ability Exceptional Diplomacy. During trials, people may follow your lead even if you haven't gained 
+        their trust yet.\n
+        ".to_string();
 
         Self {
             name,
@@ -175,7 +222,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -187,6 +235,12 @@ impl Character {
         let ai = AI::new(map);
         let details = "
         ".to_string();
+        let trust_line = "It was hard to engage in a conversation with Chio and you felt personally insecure beside a man who's a 
+        known war criminal. But in the end, he decided to teach you a bit of his ways.\n
+        You have gained Chio's trust!\n
+        You can now use the ability Cold Execution. When alone with someone in a room, you may choose to kill that person. A trial 
+        will follow soon after. If you murder the killer, though, you win the game.\n
+        ".to_string();
 
         Self {
             name,
@@ -194,7 +248,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 
@@ -206,6 +261,12 @@ impl Character {
         let ai = AI::new(map);
         let details = "
         ".to_string();
+        let trust_line = "Odette talks to you in a codescending manner at first, and you can feel her smug smile penetrating your heart. 
+        Despite feeling personally offended for some moments, you seem to have successfully strenghtened your bonds with your boss.\n
+        You have gained Odette's trust!\n
+        You have now the passive ability Night Owl. From now on, meeting the killer at nighttime doesn't mean instant death. On other 
+        words, nighttime for you is the same as daytime.\n
+        ".to_string();
 
         Self {
             name,
@@ -213,7 +274,8 @@ impl Character {
             is_killer,
             ability,
             ai,
-            details
+            details,
+            trust_line
         }
     }
 }

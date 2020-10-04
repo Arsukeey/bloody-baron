@@ -99,7 +99,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             timestamp_hours: 7,
             timestamp_minutes: 0,
             event_type: EventType::Idle,
-            idle_pack: Some(IdlePack::starter(&game_data.map, &game_data.characters)),
+            idle_pack: Some(IdlePack{}),
             movement_pack: None,
             trust_pack: None,
             ability_pack: None,
@@ -118,15 +118,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         match self.event_type {
             EventType::Wildcard => {
                 println!("{}", self.wildcard_line);
-                let mut stdout = stdout();
-                let mut stdin = stdin();
-
-                write!(stdout, "Press Enter to continue... ").unwrap();
-                stdout.flush().unwrap();
-
-                    // Read a single byte and discard
-                let mut buffer = [0u8];
-                let _ = stdin.read(&mut buffer).unwrap();
+                self.wait_enter();
 
                 vec![]
             }
@@ -151,19 +143,25 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                     }
                 }
 
+                let mut choices = vec![];
+                let mut events = vec![];
+                let mut chars_indices = vec![];
+                let mut room_indices = vec![];
+
+                self.create_choices(&mut game_data.map,
+                    &mut game_data.characters,
+                    &mut game_data.protag,
+                    &mut choices,
+                    &mut events,
+                    &mut chars_indices,
+                    &mut room_indices);
+
                 // display actions
                 println!("What will you do? Type and confirm your action's number.");
-                match &self.idle_pack {
-                    Some(idle_pack) => {
-                        let mut i = 1;
-                        for choice in &idle_pack.choices {
-                            println!("{}-> {}", i, choice);
-                            i += 1;
-                        }
-                    },
-                    None => {
-                        Event::event_without_pack_panic();
-                    }
+                let mut i = 1;
+                for choice in &choices {
+                    println!("{}-> {}", i, choice);
+                    i += 1;
                 }
 
                 // get input
@@ -174,7 +172,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                     println!("{}", buffer);
                     match parse_result {
                         Ok(i) => {
-                            if i > 0 && i <= self.idle_pack.as_ref().unwrap().choices.len() as u8 {
+                            if i > 0 && i <= choices.len() as u8 {
                                 break
                             }
                             else {
@@ -187,8 +185,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                     }
                 }
                 let choice = buffer.trim().parse::<u8>().unwrap() - 1;
-                let pack = self.idle_pack.as_ref().unwrap();
-                match pack.events[choice as usize] {
+                match events[choice as usize] {
                     IdleChoices::ExamineCharacter => {
                         return vec![
                             Event {
@@ -206,7 +203,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_execution_pack: None,
                                 victory_pack: None,
                                 game_over_pack: None,
-                                wildcard_line: game_data.characters[pack.chars_indices[choice as usize]].details.clone()
+                                wildcard_line: game_data.characters[chars_indices[choice as usize]].details.clone()
                             },
                             Event {
                                 timestamp_hours: self.timestamp_hours,
@@ -228,38 +225,30 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         ]
                     },
                     IdleChoices::TalkToCharacter => {
-                        return vec![];
+                        return vec![Event{
+                            timestamp_hours: self.timestamp_hours,
+                            timestamp_minutes: self.timestamp_minutes,
+                            event_type: EventType::TrustGain,
+                            idle_pack: None,
+                            movement_pack: None,
+                            trust_pack: Some(TrustPack {
+                                character_index: chars_indices[choice as usize]
+                            }),
+                            ability_pack: None,
+                            murder_pack: None,
+                            corpse_discovery_pack: None,
+                            trial_start_pack: None,
+                            trial_voting_pack: None,
+                            trial_execution_pack: None,
+                            victory_pack: None,
+                            game_over_pack: None,
+                            wildcard_line: String::new()
+                        }];
                     },
                     IdleChoices::MoveRoom => {
                         let location = game_data.protag.location;
                         let mut ret = vec![];
-                        for i in 0..game_data.characters.len() {
-                            let self_char = game_data.characters[i].clone();
-                            match game_data.characters[i].ai.choose_movement(game_data.map.clone(), self_char, i) {
-                                Some(new_pack) => {
-                                    ret.push(Event {
-                                        timestamp_hours: self.timestamp_hours,
-                                        timestamp_minutes: self.timestamp_minutes,
-                                        event_type: EventType::Movement,
-                                        idle_pack: None,
-                                        movement_pack: Some(new_pack),
-                                        trust_pack: None,
-                                        ability_pack: None,
-                                        murder_pack: None,
-                                        corpse_discovery_pack: None,
-                                        trial_start_pack: None,
-                                        trial_voting_pack: None,
-                                        trial_execution_pack: None,
-                                        victory_pack: None,
-                                        game_over_pack: None,
-                                        wildcard_line: String::new()
-                                    });
-                                },
-                                _ => {
-                                    ()
-                                }
-                            }
-                        }
+                        self.enqueue_npc_movement(game_data, &mut ret);
 
                         ret.push(Event {
                             timestamp_hours: self.timestamp_hours,
@@ -269,7 +258,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                             movement_pack: Some(MovementPack{
                                 protag_moves: true,
                                 move_origin: location,
-                                move_index: FromPrimitive::from_usize(pack.room_indices[choice as usize]).unwrap(),
+                                move_index: FromPrimitive::from_usize(room_indices[choice as usize]).unwrap(),
                                 character_index: 0,
 
                             }),
@@ -291,17 +280,45 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             },
 
             EventType::TrustGain => {
-                vec![]
+                self.update_timestamps();
+                let pack = self.trust_pack.as_ref().unwrap();
+                if game_data.protag.trust_table[pack.character_index] {
+                    println!("You already built trust with this character, but you spend time with them anyway.")
+                }
+                else {
+                    println!("{}", game_data.characters[pack.character_index].trust_line);
+                    self.build_trust(&mut game_data.protag, pack.character_index);
+                }
+
+                self.wait_enter();
+
+                let mut ret = vec![];
+                self.enqueue_npc_movement(game_data, &mut ret);
+
+                ret.push(Event {
+                        timestamp_hours: self.timestamp_hours,
+                        timestamp_minutes: self.timestamp_minutes,
+                        event_type: EventType::Idle,
+                        idle_pack: Some(IdlePack {}),
+                        movement_pack: None,
+                        trust_pack: None,
+                        ability_pack: None,
+                        murder_pack: None,
+                        corpse_discovery_pack: None,
+                        trial_start_pack: None,
+                        trial_voting_pack: None,
+                        trial_execution_pack: None,
+                        victory_pack: None,
+                        game_over_pack: None,
+                        wildcard_line: String::new()
+                    });
+                
+                ret
             },
 
             EventType::Movement => {
                 self.movement(&mut game_data.map, &mut game_data.characters, &mut game_data.protag);
                 self.update_timestamps();
-                let mut choices = vec![];
-                let mut events = vec![];
-                let mut chars_indices = vec![];
-                let mut room_indices = vec![];
-                self.create_choices(&mut game_data.map, &mut game_data.characters, &mut game_data.protag, &mut choices, &mut events, &mut chars_indices, &mut room_indices);
 
                 let pack = self.movement_pack.as_mut().unwrap();
                 if !pack.protag_moves {
@@ -313,12 +330,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         timestamp_hours: self.timestamp_hours,
                         timestamp_minutes: self.timestamp_minutes,
                         event_type: EventType::Idle,
-                        idle_pack: Some(IdlePack {
-                            choices,
-                            events,
-                            chars_indices,
-                            room_indices
-                        }),
+                        idle_pack: Some(IdlePack {}),
                         movement_pack: None,
                         trust_pack: None,
                         ability_pack: None,
@@ -364,6 +376,40 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
+    pub fn build_trust(&self, protag: &mut Box<Protag>, index: usize) {
+        protag.trust_table[index] = true;
+    }
+
+    pub fn enqueue_npc_movement(&mut self, game_data: &mut GameData, ret: &mut Vec<Event>) {
+        for i in 0..game_data.characters.len() {
+            let self_char = game_data.characters[i].clone();
+            match game_data.characters[i].ai.choose_movement(game_data.map.clone(), self_char, i) {
+                Some(new_pack) => {
+                    ret.push(Event {
+                        timestamp_hours: self.timestamp_hours,
+                        timestamp_minutes: self.timestamp_minutes,
+                        event_type: EventType::Movement,
+                        idle_pack: None,
+                        movement_pack: Some(new_pack),
+                        trust_pack: None,
+                        ability_pack: None,
+                        murder_pack: None,
+                        corpse_discovery_pack: None,
+                        trial_start_pack: None,
+                        trial_voting_pack: None,
+                        trial_execution_pack: None,
+                        victory_pack: None,
+                        game_over_pack: None,
+                        wildcard_line: String::new()
+                    });
+                },
+                _ => {
+                    ()
+                }
+            }
+        }
+    }
+
     pub fn movement(&mut self, map: &mut Box<Map>, characters: &mut Vec<Character>, protag: &mut Box<Protag>) {
         let pack = self.movement_pack.as_ref().unwrap();
         if pack.protag_moves {
@@ -385,9 +431,9 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         events: &mut Vec<IdleChoices>,
         chars_indices: &mut Vec<usize>,
         room_indices: &mut Vec<usize>) {
-        let pack = self.movement_pack.as_ref().unwrap();
+
         for i in 0..NUMBER_OF_CHARS {
-            if map.chars_in_rooms[pack.move_index as usize].contains(&characters[i].name) && characters[i].is_alive {
+            if map.chars_in_rooms[protag.location as usize].contains(&characters[i].name) && characters[i].is_alive {
                 chars_indices.push(i);
                 room_indices.push(i);
                 chars_indices.push(i);
@@ -414,6 +460,18 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             self.timestamp_minutes = 0;
             self.timestamp_hours += 1;
         }
+    }
+
+    pub fn wait_enter(&self) {
+        let mut stdout = stdout();
+        let mut stdin = stdin();
+
+        write!(stdout, "Press Enter to continue... ").unwrap();
+        stdout.flush().unwrap();
+
+        // Read a single byte and discard
+        let mut buffer = [0u8];
+        let _ = stdin.read(&mut buffer).unwrap();
     }
 
     pub fn event_without_pack_panic() {
