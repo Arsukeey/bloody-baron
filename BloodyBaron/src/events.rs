@@ -20,7 +20,6 @@ pub enum EventType {
     Idle,
     TrustGain,
     Movement,
-    Ability,
     CorpseDiscovery,
     TrialStart,
     TrialVoting,
@@ -110,6 +109,11 @@ impl Event {
                     for i in 0..game_data.map.chars_in_rooms.len() {
                         game_data.map.chars_in_rooms[i].clear();
                     }
+
+                    for character in &mut game_data.characters {
+                        character.in_room = false;
+                    }
+
                     for character in game_data.characters.clone() {
                         if character.is_alive {
                             game_data.map.chars_in_rooms[RoomType::MainHall as usize].push(character.name);
@@ -128,12 +132,33 @@ impl Event {
                             random_pick += 1;
                             random_pick %= NUMBER_OF_CHARS;
                         }
+
+                        for i in 0..game_data.characters.len() {
+                            if game_data.characters[i].is_alive && !game_data.characters[i].is_killer && i != random_pick {
+                                game_data.characters[i].in_room = true;
+                            }
+                        }
+
                         for i in 0..game_data.map.chars_in_rooms.len() {
                             for j in 0..game_data.map.chars_in_rooms[i].len() {
                                 if game_data.map.chars_in_rooms[i][j] != game_data.killer_name 
                                     && game_data.map.chars_in_rooms[i][j] != game_data.characters[random_pick].name {
                                     // remove name
                                     game_data.map.chars_in_rooms[i].remove(j);
+                                }
+                            }
+                        }
+                    }
+
+                    // pick lock
+                    if game_data.protag.pick_lock && game_data.protag.location as u32 == RoomType::InnHallway as u32 {
+                        for character in game_data.characters.clone() {
+                            if character.is_alive {
+                                if character.in_room {
+                                    println!("You pick {}'s lock and see them lying peacefully in their room.", character.name);
+                                }
+                                else {
+                                    println!("You pick {}'s lock, and finds out no one's in the room.", character.name);
                                 }
                             }
                         }
@@ -397,7 +422,7 @@ impl Event {
                 }
                 else {
                     println!("{}", game_data.characters[pack.character_index].trust_line);
-                    self.build_trust(&mut game_data.protag, pack.character_index);
+                    self.build_trust(game_data, pack.character_index);
                 }
 
                 self.wait_enter();
@@ -446,10 +471,6 @@ impl Event {
                 ]
             },
 
-            EventType::Ability => {
-                vec![]
-            },
-
             EventType::CorpseDiscovery => {
                 println!("A CORPSE HAS BEEN FOUND!");
                 println!("You can't help but scream in despair as you find what remains of {} lying on the ground,
@@ -495,7 +516,7 @@ impl Event {
                     println!("Your investigation find out the last places each one has respectively been to: ");
                     for i in 0..game_data.characters.len() {
                         if game_data.characters[i].is_alive {
-                            print!("{} has been to the {}, the {}, and the {}.", game_data.characters[i].name,
+                            println!("{} has been to the {}, the {}, and the {}.", game_data.characters[i].name,
                             game_data.characters[i].last_positions[0],
                             game_data.characters[i].last_positions[1],
                             game_data.characters[i].last_positions[2]);
@@ -564,6 +585,7 @@ impl Event {
 
             EventType::TrialVoting => {
                 println!("You were the first to cast your vote. You voted for {}", self.voting_pack.as_ref().unwrap().choice_name);
+                println!("The others are casting their votes...");
                 let mut vote_table: HashMap<String, u32> = HashMap::new();
 
                 for i in 0..game_data.characters.len() {
@@ -576,7 +598,8 @@ impl Event {
 
                 for i in 0..game_data.characters.len() {
                     if game_data.characters[i].is_alive {
-                        if game_data.protag.trust_table[i] && self.voting_pack.as_ref().unwrap().choice_name != game_data.characters[i].name {
+                        if (game_data.protag.trust_table[i] || game_data.protag.perfect_bluff) 
+                        && self.voting_pack.as_ref().unwrap().choice_name != game_data.characters[i].name {
                             let count = vote_table.get_mut(&self.voting_pack.as_ref().unwrap().choice_name).unwrap();
                             *count += 1;
                         }
@@ -601,6 +624,8 @@ impl Event {
                     }
                 }
 
+                self.wait_enter();
+
                 vec![
                     Event {
                         timestamp_hours: self.timestamp_hours,
@@ -621,7 +646,7 @@ impl Event {
 
             EventType::TrialExecution => {
                 let pack = self.execution_pack.as_ref().unwrap();
-                println!("The crowd has voted to execute {}.", pack.choice_name);
+                println!("By a majority, the crowd has voted to execute {}.", pack.choice_name);
                 let index = game_data.characters.iter().position(|x| x.name == pack.choice_name).unwrap();
                 game_data.characters[index].is_alive = false;
                 println!("After a grotesque but necessary ritual, the other voters try to drive their minds 
@@ -633,6 +658,7 @@ impl Event {
                         }
                     }
                 }
+                self.wait_enter();
                 self.update_timestamps();
                 vec![Event {
                     timestamp_hours: self.timestamp_hours,
@@ -669,8 +695,9 @@ impl Event {
         }
     }
 
-    pub fn build_trust(&self, protag: &mut Box<Protag>, index: usize) {
-        protag.trust_table[index] = true;
+    pub fn build_trust(&self, game_data: &mut GameData, index: usize) {
+        game_data.protag.trust_table[index] = true;
+        (game_data.characters[index].ability)(game_data);
     }
 
     pub fn enqueue_npc_movement(&mut self, game_data: &mut GameData, ret: &mut Vec<Event>) {
@@ -760,7 +787,7 @@ impl Event {
             // only one left game over
             return true;
         }
-        else if timestamp_hours >= 22 || timestamp_hours <= 6 {
+        else if (timestamp_hours >= 22 || timestamp_hours <= 6) && !protag.night_owl {
             // nighttime game over
             for i in 0..map.chars_in_rooms[protag.location as usize].len() {
                 let index = characters.iter().position(|x| x.name == map.chars_in_rooms[protag.location as usize][i]).unwrap();
@@ -849,12 +876,6 @@ impl Event {
         // Read a single byte and discard
         let mut buffer = [0u8];
         let _ = stdin.read(&mut buffer).unwrap();
-    }
-
-    pub fn event_without_pack_panic() {
-        panic!("ERROR: an event from a given type was queued without an event pack from the same type.\n 
-        This was not supposed to happen.\n
-        Please contact the main dev about this.\n");
     }
 }
 

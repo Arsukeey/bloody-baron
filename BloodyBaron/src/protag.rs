@@ -7,9 +7,14 @@ pub struct Protag {
     pub location: RoomType,
     pub moved: bool,
     pub investigation: bool,
+    pub celestial_call: bool,
+    pub overhearing: bool,
+    pub pick_lock: bool,
     pub hindsight: bool,
     pub perfect_bluff: bool,
-    pub night_owl: bool
+    pub night_owl: bool,
+    pub pitiful_begging: bool,
+    pub cold_execution: bool,
 }
 
 impl Protag {
@@ -21,9 +26,14 @@ impl Protag {
             location,
             moved: false,
             investigation: false,
+            celestial_call: false,
+            overhearing: false,
+            pick_lock: false,
             hindsight: false,
             perfect_bluff: false,
-            night_owl: false
+            night_owl: false,
+            pitiful_begging: false,
+            cold_execution: false
         }
     }
 }

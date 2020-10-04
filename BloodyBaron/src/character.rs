@@ -1,6 +1,7 @@
 use crate::map::{Map, RoomTable, NUMBER_OF_ROOMS};
 use crate::abilities::*;
 use crate::ai::AI;
+use crate::events::GameData;
 
 pub const NUMBER_OF_CHARS: usize = 9;
 
@@ -9,12 +10,12 @@ pub struct Character {
     pub name: String,
     pub is_alive: bool,
     pub is_killer: bool,
-    pub ability: fn(Vec<Character>, &Map) -> (),
+    pub ability: fn(&mut GameData) -> (),
     pub ai: AI,
     pub details: String,
     pub trust_line: String,
     pub last_positions: [&'static str; 3],
-    // pub dialogue: fn(&Character, Vec<Character>, &Map) -> ()
+    pub in_room: bool
 }
 
 impl Character {
@@ -50,7 +51,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -72,8 +74,6 @@ impl Character {
         let trust_line = "After talking to Ravi about how life used to be before you two got locked up here, you two finally 
         seem to be getting closer.\n
         You have gained Ravi's trust!\n
-        You can now use the ability Celestial Call. It lets you act like an angel and protect one person for an entire day. 
-        This person won't die for the next 24 hours. You can't use this on yourself.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
     
@@ -85,7 +85,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -105,8 +106,6 @@ impl Character {
         let trust_line = "After some small talk with Luna and having to withstand her idiosyncrasies, you realize you two became 
         friends in basically no time at all.\n
         You gained Luna's trust!\n
-        You can now use the ability Overhear. Sharp catgirl listening skills can help you determine who's in nearby rooms 
-        in advance. Very useful when exploring at nighttime.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
@@ -118,7 +117,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -151,7 +151,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -183,7 +184,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -198,8 +200,6 @@ impl Character {
         let trust_line = "You hear Vincent whine about his current situation and express his entitlement to you for about an hour. 
         It was painful, but you did your best. He seems to be fond of you now.\n
         You have gained Vincent's trust!\n
-        You can now use the ability Pitiful Begging. When alone with someone in your room, you can beg on your knees for your life. 
-        If that someone is the killer, they'll spare you for the moment. Their identity won't be revealed, though.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
@@ -211,7 +211,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -238,7 +239,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -253,8 +255,6 @@ impl Character {
         let trust_line = "It was hard to engage in a conversation with Chio and you felt personally insecure beside a man who's a 
         known war criminal. But in the end, he decided to teach you a bit of his ways.\n
         You have gained Chio's trust!\n
-        You can now use the ability Cold Execution. When alone with someone in a room, you may choose to kill that person. A trial 
-        will follow soon after. If you murder the killer, though, you win the game.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 
@@ -266,7 +266,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 
@@ -294,7 +295,8 @@ impl Character {
             ai,
             details,
             trust_line,
-            last_positions
+            last_positions,
+            in_room: false
         }
     }
 }

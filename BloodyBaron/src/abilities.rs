@@ -1,37 +1,37 @@
-use crate::{character::Character, map::Map};
+use crate::events::GameData;
 
-pub fn investigation(chars: Vec<Character>, map: &Map) {
-    // allows to check where a character has been in the last 3 hours
+pub fn investigation(game_data: &mut GameData) {
+    game_data.protag.investigation = true;
 }
 
-pub fn celestial_call(chars: Vec<Character>, map: &Map) {
-    // protects one person through the day, not yourself
+pub fn celestial_call(game_data: &mut GameData) {
+    game_data.protag.celestial_call = true;
 }
 
-pub fn overhearing(chars: Vec<Character>, map: &Map) {
-    // identifies who's in nearby rooms
+pub fn overhearing(game_data: &mut GameData) {
+    game_data.protag.overhearing = true;
 }
 
-pub fn perfect_bluff(chars: Vec<Character>, map: &Map) {
-    // rises luck, by confusing the AI
+pub fn perfect_bluff(game_data: &mut GameData) {
+    game_data.protag.perfect_bluff = true
 }
 
-pub fn pick_lock(chars: Vec<Character>, map: &Map) {
-    // allows you to pick locks of rooms and go inside
+pub fn pick_lock(game_data: &mut GameData) {
+    game_data.protag.pick_lock = true
 }
 
-pub fn pitiful_begging(chars: Vec<Character>, map: &Map) {
-    // beg for your life (works only during the day)
+pub fn pitiful_begging(game_data: &mut GameData) {
+    game_data.protag.pitiful_begging = true
 }
 
-pub fn hindsight(chars: Vec<Character>, map: &Map) {
-    // every dialogue path leads to gaining trust
+pub fn hindsight(game_data: &mut GameData) {
+    game_data.protag.hindsight = true
 }
 
-pub fn cold_execution(chars: Vec<Character>, map: &Map) {
-    // allows you to kill someone (if there's someone nearby, you can get caught. if you kill the killer and get away, the game is over)
+pub fn cold_execution(game_data: &mut GameData) {
+    game_data.protag.cold_execution = true
 }
 
-pub fn night_owl(chars: Vec<Character>, map: &Map) {
-    // meeting killer at night is not instant death, works as day
+pub fn night_owl(game_data: &mut GameData) {
+    game_data.protag.night_owl = true
 }
