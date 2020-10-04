@@ -1,7 +1,9 @@
 use std::io::{stdin, stdout, Read, Write};
 use std::collections::VecDeque;
-use crate::character::Character;
-use crate::map::{Map, RoomTable};
+use num_traits::FromPrimitive;
+
+use crate::character::{Character, NUMBER_OF_CHARS};
+use crate::map::{Map, RoomType, RoomTable, NUMBER_OF_ROOMS};
 use crate::packs::{
     IdleChoices,
     IdlePack,
@@ -40,7 +42,7 @@ pub struct Event<'a, 'b, 'c> {
     pub timestamp_minutes: u8,
     pub event_type: EventType,
     pub idle_pack: Option<IdlePack>,
-    pub movement_pack: Option<MovementPack<'a, 'b>>,
+    pub movement_pack: Option<MovementPack>,
     pub trust_pack: Option<TrustPack<'c>>,
     pub dialogue_pack: Option<DialoguePack<'b>>,
     pub ability_pack: Option<AbilityPack<'a, 'b>>,
@@ -97,12 +99,12 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn start(map: Map, characters: Vec<Character>) -> Self {
+    pub fn start(game_data: &GameData) -> Self {
         Self {
             timestamp_hours: 7,
             timestamp_minutes: 0,
             event_type: EventType::Idle,
-            idle_pack: Some(IdlePack::starter(map, characters)),
+            idle_pack: Some(IdlePack::starter(&game_data.map, &game_data.characters)),
             movement_pack: None,
             trust_pack: None,
             dialogue_pack: None,
@@ -118,7 +120,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
     }
 
-    pub fn execute(&self, map: &mut Map, characters: Vec<Character>, protag: &mut Protag) -> Vec<Event<'a, 'b, 'c>> {
+    pub fn execute(&mut self, game_data: &mut GameData) -> Vec<Event<'a, 'b, 'c>> {
         match self.event_type {
             EventType::Wildcard => {
                 println!("{}", self.wildcard_line);
@@ -127,17 +129,17 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
 
             EventType::Idle => {
                 println!("{}", format!("It is currently {}:{:02}.", self.timestamp_hours, self.timestamp_minutes));
-                println!("{}", format!("You are now in the {}.", RoomTable[protag.location as usize]));
-                match map.chars_in_rooms[protag.location as usize].len() {
+                println!("{}", format!("You are now in the {}.", RoomTable[game_data.protag.location as usize]));
+                match game_data.map.chars_in_rooms[game_data.protag.location as usize].len() {
                     0 => println!("There's nobody else here."),
-                    1 => println!("{}", format!("You are alone here with {}.", map.chars_in_rooms[protag.location as usize][0])),
+                    1 => println!("{}", format!("You are alone here with {}.", game_data.map.chars_in_rooms[game_data.protag.location as usize][0])),
                     _ => {
-                        for i in 0..map.chars_in_rooms[protag.location as usize].len() {
-                            print!("{}", map.chars_in_rooms[protag.location as usize][i]);
-                            if i < map.chars_in_rooms[protag.location as usize].len() - 2 {
+                        for i in 0..game_data.map.chars_in_rooms[game_data.protag.location as usize].len() {
+                            print!("{}", game_data.map.chars_in_rooms[game_data.protag.location as usize][i]);
+                            if i < game_data.map.chars_in_rooms[game_data.protag.location as usize].len() - 2 {
                                 print!(", ");
                             }
-                            else if i == map.chars_in_rooms[protag.location as usize].len() - 2 {
+                            else if i == game_data.map.chars_in_rooms[game_data.protag.location as usize].len() - 2 {
                                 print!(" and ");
                             }
                         }
@@ -200,7 +202,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_execution_pack: None,
                                 victory_pack: None,
                                 game_over_pack: None,
-                                wildcard_line: characters[choice as usize / 2].details.clone()
+                                wildcard_line: game_data.characters[choice as usize / 2].details.clone()
                             },
                             Event {
                                 timestamp_hours: self.timestamp_hours,
@@ -218,7 +220,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 trial_execution_pack: None,
                                 victory_pack: None,
                                 game_over_pack: None,
-                                wildcard_line: characters[choice as usize].details.clone()
+                                wildcard_line: game_data.characters[choice as usize].details.clone()
                             }
                         ]
                     },
@@ -226,14 +228,153 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         return vec![];
                     },
                     IdleChoices::MoveRoom => {
-                        return vec![];
+                        let location = game_data.protag.location;
+                        let chars_in_rooms = game_data.map.chars_in_rooms.clone();
+                        return vec![
+                            Event {
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::Movement,
+                                idle_pack: None,
+                                movement_pack: Some(MovementPack{
+                                    protag_moves: true,
+                                    move_origin: location,
+                                    move_index: FromPrimitive::from_u8(choice - chars_in_rooms[location as usize].len() as u8 * 2).unwrap(),
+                                    character_index: 0,
+
+                                }),
+                                trust_pack: None,
+                                dialogue_pack: None,
+                                ability_pack: None,
+                                murder_pack: None,
+                                corpse_discovery_pack: None,
+                                trial_start_pack: None,
+                                trial_voting_pack: None,
+                                trial_execution_pack: None,
+                                victory_pack: None,
+                                game_over_pack: None,
+                                wildcard_line: String::new()
+                            }
+                        ];
                     }
                 }
-            }
+            },
 
-            _ => {
+            EventType::Dialogue => {
+                vec![]
+            },
+
+            EventType::TrustGain => {
+                vec![]
+            },
+
+            EventType::TrustFail => {
+                vec![]
+            },
+
+            EventType::Movement => {
+                self.update_timestamps();
+                let mut choices = vec![];
+                let mut events = vec![];
+                let mut chars_indices = vec![];
+                let mut room_indices = vec![];
+                self.create_choices(&mut game_data.map, &mut game_data.characters, &mut choices, &mut events, &mut chars_indices, &mut room_indices);
+
+                let pack = self.movement_pack.as_mut().unwrap();
+                if !pack.protag_moves {
+                    return vec![];
+                }
+
+                vec![
+                    Event {
+                        timestamp_hours: self.timestamp_hours,
+                        timestamp_minutes: self.timestamp_minutes,
+                        event_type: EventType::Idle,
+                        idle_pack: Some(IdlePack {
+                            choices,
+                            events,
+                            chars_indices,
+                            room_indices
+                        }),
+                        movement_pack: None,
+                        trust_pack: None,
+                        dialogue_pack: None,
+                        ability_pack: None,
+                        murder_pack: None,
+                        corpse_discovery_pack: None,
+                        trial_start_pack: None,
+                        trial_voting_pack: None,
+                        trial_execution_pack: None,
+                        victory_pack: None,
+                        game_over_pack: None,
+                        wildcard_line: String::new()
+                    }
+                ]
+            },
+
+            EventType::Ability => {
+                vec![]
+            },
+
+            EventType::Murder => {
+                vec![]
+            },
+
+            EventType::TrialStart => {
+                vec![]
+            },
+
+            EventType::TrialVoting => {
+                vec![]
+            },
+
+            EventType::TrialExecution => {
+                vec![]
+            },
+
+            EventType::Victory => {
+                vec![]
+            },
+
+            EventType::GameOver => {
                 vec![]
             }
+        }
+    }
+
+
+
+    pub fn create_choices(&mut self,
+        map: &mut Box<Map>,
+        characters: &mut Vec<Character>,
+        choices: &mut Vec<String>,
+        events: &mut Vec<IdleChoices>,
+        chars_indices: &mut Vec<usize>,
+        room_indices: &mut Vec<usize>) {
+        let pack = self.movement_pack.as_ref().unwrap();
+        for i in 0..NUMBER_OF_CHARS {
+            if map.chars_in_rooms[pack.move_index as usize].contains(&characters[i].name) && characters[i].is_alive {
+                chars_indices.push(i);
+                choices.push(format!("{}{}", "Spend some time with ", characters[i].name));
+                events.push(IdleChoices::TalkToCharacter);
+                choices.push(format!("{}{}{}", "Examine ", characters[i].name, "'s profile"));
+                events.push(IdleChoices::ExamineCharacter);
+            }
+        }
+        for i in 0..NUMBER_OF_ROOMS {
+            if map.adjacency[0][i] == 1 {
+                room_indices.push(i);
+                events.push(IdleChoices::MoveRoom);
+                choices.push(format!("Go to the {}", RoomTable[i]));
+            }
+        }
+    }
+
+    pub fn update_timestamps(&mut self) {
+        self.timestamp_minutes += 30;
+        if self.timestamp_minutes >= 60 {
+            self.timestamp_minutes = 0;
+            self.timestamp_hours += 1;
         }
     }
 
@@ -245,17 +386,57 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
 }
 
 pub struct EventQueue<'a, 'b, 'c> {
-    pub events: VecDeque<Event<'a, 'b, 'c>>,
-    pub characters: Vec<Character>,
-    pub map: Map,
-    pub protag: Protag
+    pub events: VecDeque<Event<'a, 'b, 'c>>
 }
 
 impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
-    pub fn new() -> Self {
+    pub fn new(game_data: &GameData) -> Self {
         let mut events = VecDeque::new();
         events.push_back(Event::introduction());
-        let map = Map::new();
+        events.push_back(Event::start(game_data));
+
+        Self {
+            events
+        }
+    }
+
+    pub fn execute_event(&mut self, game_data: &mut GameData) {
+        // here we execute all char actions
+        let consequences = self.events[0].execute(game_data);
+        for event in consequences {
+            self.events.push_back(event);
+        }
+    }
+
+    pub fn allow_next_event(&self) -> Result<(), std::io::Error> {
+        // let mut stdout = stdout();
+        // let mut stdin = stdin();
+
+        // write!(stdout, "Press Enter to continue... ")?;
+        // stdout.flush()?;
+
+        //     // Read a single byte and discard
+        // let mut buffer = [0u8];
+        // let _ = stdin.read(&mut buffer).unwrap();
+
+        print!("{}[2J", 27 as char);
+        Ok(())
+    }
+    
+    pub fn poll_next_event(&mut self) -> Option<Event> {
+        self.events.pop_front()
+    }
+}
+
+pub struct GameData {
+    pub characters: Vec<Character>,
+    pub map: Box<Map>,
+    pub protag: Box<Protag>
+}
+
+impl GameData {
+    pub fn new() -> Self {
+        let map = Box::new(Map::new());
         let characters = vec![
             Character::freya(&map),
             Character::ravi(&map),
@@ -267,41 +448,11 @@ impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
             Character::chio(&map),
             Character::odette(&map), 
         ];
-        events.push_back(Event::start(map.clone(), characters.clone()));
-        let protag = Protag::new();
-
+        let protag = Box::new(Protag::new());
         Self {
-            events,
-            characters,
             map,
+            characters,
             protag
         }
-    }
-
-    pub fn execute_event(&mut self) {
-        // here we execute all char actions
-        let consequences = self.events[0].execute(&mut self.map, self.characters.clone(), &mut self.protag);
-        for event in consequences {
-            self.events.push_back(event);
-        }
-    }
-
-    pub fn allow_next_event(&self) -> Result<(), std::io::Error> {
-        let mut stdout = stdout();
-        let mut stdin = stdin();
-
-        write!(stdout, "Press Enter to continue... ")?;
-        stdout.flush()?;
-
-            // Read a single byte and discard
-        let mut buffer = [0u8];
-        let _ = stdin.read(&mut buffer).unwrap();
-
-        print!("{}[2J", 27 as char);
-        Ok(())
-    }
-    
-    pub fn poll_next_event(&mut self) -> Option<Event> {
-        self.events.pop_front()
     }
 }

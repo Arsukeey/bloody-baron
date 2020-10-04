@@ -1,4 +1,4 @@
-use crate::map::{Map, RoomTable, NUMBER_OF_ROOMS};
+use crate::map::{Map, RoomType, RoomTable, NUMBER_OF_ROOMS};
 use crate::character::{Character, NUMBER_OF_CHARS};
 use crate::protag::Protag;
 
@@ -11,7 +11,6 @@ pub enum IdleChoices {
 
 #[derive(Clone)]
 pub struct IdlePack {
-    pub map: Map,
     pub choices: Vec<String>,
     pub events: Vec<IdleChoices>,
     pub chars_indices: Vec<usize>,
@@ -19,7 +18,7 @@ pub struct IdlePack {
 }
 
 impl IdlePack {
-    pub fn starter(map: Map, characters: Vec<Character>) -> Self {
+    pub fn starter(map: &Box<Map>, characters: &Vec<Character>) -> Self {
         let mut choices = vec![];
         let mut events = vec![];
         let mut chars_indices = vec![];
@@ -42,7 +41,6 @@ impl IdlePack {
         }
 
         Self {
-            map,
             choices,
             events,
             chars_indices,
@@ -51,20 +49,11 @@ impl IdlePack {
     }
 }
 
-pub struct MovementPack<'a, 'b> {
-    pub map: &'a mut Map,
-    pub character: &'b mut Character,
-    pub move_origin: usize,
-    pub move_index: usize
-}
-
-impl<'a, 'b> MovementPack<'a, 'b> {
-    pub fn execute(&mut self) {
-        let index = self.map.chars_in_rooms[self.move_origin]
-            .iter().position(|x| *x == self.character.name).unwrap();
-        self.map.chars_in_rooms[self.move_origin].remove(index);
-        self.map.chars_in_rooms[self.move_index].push(self.character.name.clone());
-    }
+pub struct MovementPack {
+    pub protag_moves: bool,
+    pub character_index: usize,
+    pub move_origin: RoomType,
+    pub move_index: RoomType
 }
 
 pub struct TrustPack<'c> {

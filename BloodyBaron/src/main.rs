@@ -12,13 +12,14 @@ mod protag;
 mod packs;
 
 fn main() -> Result<(), std::io::Error> {
-    let mut event_queue = events::EventQueue::new();
+    let mut game_data = events::GameData::new();
+    let mut event_queue = events::EventQueue::new(&game_data);
 
     print!("{}[2J", 27 as char);
     println!("WELCOME TO BLOODY BARON");
 
     loop {
-        event_queue.execute_event();
+        event_queue.execute_event(&mut game_data);
         event_queue.allow_next_event()?;
         let event = event_queue.poll_next_event();
         match event {

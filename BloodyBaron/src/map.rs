@@ -1,4 +1,5 @@
 use rand::random;
+use num_derive::FromPrimitive;    
 
 pub const NUMBER_OF_ROOMS: usize = 8;
 
@@ -13,7 +14,7 @@ pub const RoomTable: [&str; NUMBER_OF_ROOMS] = [
     "Shed"
 ];
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, FromPrimitive)]
 pub enum RoomType {
     MainHall,
     Bathroom,
