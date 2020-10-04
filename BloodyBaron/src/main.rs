@@ -12,7 +12,7 @@ mod packs;
 
 fn main() -> Result<(), std::io::Error> {
     let mut game_data = events::GameData::new();
-    let mut event_queue = events::EventQueue::new(&game_data);
+    let mut event_queue = events::EventQueue::new();
 
     print!("{}[2J", 27 as char);
     println!("WELCOME TO BLOODY BARON");

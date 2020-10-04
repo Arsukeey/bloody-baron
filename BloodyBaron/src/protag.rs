@@ -5,7 +5,11 @@ use crate::map::{RoomType};
 pub struct Protag {
     pub trust_table: [bool; NUMBER_OF_CHARS],
     pub location: RoomType,
-    pub moved: bool
+    pub moved: bool,
+    pub investigation: bool,
+    pub hindsight: bool,
+    pub perfect_bluff: bool,
+    pub night_owl: bool
 }
 
 impl Protag {
@@ -15,7 +19,11 @@ impl Protag {
         Self {
             trust_table,
             location,
-            moved: false
+            moved: false,
+            investigation: false,
+            hindsight: false,
+            perfect_bluff: false,
+            night_owl: false
         }
     }
 }

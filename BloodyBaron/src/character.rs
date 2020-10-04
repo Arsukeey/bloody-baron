@@ -37,7 +37,8 @@ impl Character {
         let trust_line = "After spending some moments of awkward silence with Freya, composed of short intervals of conversation, 
         she seems to like you a little bit better.\n
         You gained Freya's trust!\n
-        You can now use the ability Investigate. It lets you know where a person has been for the last hour and a half.\n
+        You can now use the ability Investigation. It lets you know the last three places a person has been to before 
+        starting the trial.\n
         ".to_string();
         let last_positions = [RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS], RoomTable[NUMBER_OF_ROOMS]];
 

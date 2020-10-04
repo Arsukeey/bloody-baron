@@ -9,12 +9,7 @@ use crate::packs::{
     IdlePack,
     MovementPack,
     TrustPack,
-    AbilityPack,
-    MurderPack,
-    CorpseDiscoveryPack,
-    TrialStartPack,
-    TrialVotingPack,
-    TrialExecutionPack,
+    AbilityPack
 };
 use crate::protag::Protag;
 
@@ -32,23 +27,18 @@ pub enum EventType {
     GameOver
 }
 
-pub struct Event<'a, 'b, 'c> {
+pub struct Event {
     pub timestamp_hours: u8,
     pub timestamp_minutes: u8,
     pub event_type: EventType,
     pub idle_pack: Option<IdlePack>,
     pub movement_pack: Option<MovementPack>,
     pub trust_pack: Option<TrustPack>,
-    pub ability_pack: Option<AbilityPack<'a, 'b>>,
-    pub murder_pack: Option<MurderPack<'a, 'b>>,
-    pub corpse_discovery_pack: Option<CorpseDiscoveryPack<'a, 'c>>,
-    pub trial_start_pack: Option<TrialStartPack>,
-    pub trial_voting_pack: Option<TrialVotingPack>,
-    pub trial_execution_pack: Option<TrialExecutionPack<'b>>,
+    pub ability_pack: Option<AbilityPack>,
     pub wildcard_line: String
 }
 
-impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
+impl Event {
     pub fn introduction() -> Self {
         Self {
             timestamp_hours: 0,
@@ -58,11 +48,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             movement_pack: None,
             trust_pack: None,
             ability_pack: None,
-            murder_pack: None,
-            corpse_discovery_pack: None,
-            trial_start_pack: None,
-            trial_voting_pack: None,
-            trial_execution_pack: None,
             wildcard_line: "This is an experimental detective text adventure.\n
             You are stuck in a building with nine people, and there's a murderer between them.\n
             For each round, which lasts for 30 in-game minutes, you'll be able to move 
@@ -97,16 +82,11 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             movement_pack: None,
             trust_pack: None,
             ability_pack: None,
-            murder_pack: None,
-            corpse_discovery_pack: None,
-            trial_start_pack: None,
-            trial_voting_pack: None,
-            trial_execution_pack: None,
             wildcard_line: String::new()
         }
     }
 
-    pub fn execute(&mut self, game_data: &mut GameData) -> Vec<Event<'a, 'b, 'c>> {
+    pub fn execute(&mut self, game_data: &mut GameData) -> Vec<Event> {
         match self.event_type {
             EventType::Wildcard => {
                 println!("{}", self.wildcard_line);
@@ -224,11 +204,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: game_data.characters[chars_indices[choice as usize]].details.clone()
                             },
                             Event {
@@ -239,11 +214,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: String::new()
                             }
                         ]
@@ -260,11 +230,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: String::new()
                             }];
                         }
@@ -279,11 +244,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                     character_index: chars_indices[choice as usize]
                                 }),
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: String::new()
                             }];
                         }
@@ -300,11 +260,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: String::new()
                             }];
                         }
@@ -312,7 +267,7 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         let location = game_data.protag.location;
                         let mut ret = vec![];
                         self.enqueue_npc_movement(game_data, &mut ret);
-
+                        
                         ret.push(Event {
                             timestamp_hours: self.timestamp_hours,
                             timestamp_minutes: self.timestamp_minutes,
@@ -327,13 +282,21 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                             }),
                             trust_pack: None,
                             ability_pack: None,
-                            murder_pack: None,
-                            corpse_discovery_pack: None,
-                            trial_start_pack: None,
-                            trial_voting_pack: None,
-                            trial_execution_pack: None,
                             wildcard_line: String::new()
                         });
+
+                        if game_data.map.has_corpse[room_indices[choice as usize]] != "" {
+                            ret.push(Event {
+                                timestamp_hours: self.timestamp_hours,
+                                timestamp_minutes: self.timestamp_minutes,
+                                event_type: EventType::CorpseDiscovery,
+                                idle_pack: None,
+                                movement_pack: None,
+                                trust_pack: None,
+                                ability_pack: None,
+                                wildcard_line: String::new()
+                            });
+                        }
 
                         ret
                     },
@@ -348,11 +311,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: "You went back to your room and locked the door.
                                 You have a good night of sleep.\n
                                 ".to_string()
@@ -365,11 +323,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: "Nighttime is now over, it's 7 o'clock.
                                 You leave your room and prepare to meet the other people in the Main Hall.\n
                                 ".to_string()
@@ -385,11 +338,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: String::new()
                             });
                         }
@@ -403,11 +351,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                                 movement_pack: None,
                                 trust_pack: None,
                                 ability_pack: None,
-                                murder_pack: None,
-                                corpse_discovery_pack: None,
-                                trial_start_pack: None,
-                                trial_voting_pack: None,
-                                trial_execution_pack: None,
                                 wildcard_line: String::new()
                             });
                         }
@@ -440,11 +383,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         movement_pack: None,
                         trust_pack: None,
                         ability_pack: None,
-                        murder_pack: None,
-                        corpse_discovery_pack: None,
-                        trial_start_pack: None,
-                        trial_voting_pack: None,
-                        trial_execution_pack: None,
                         wildcard_line: String::new()
                     });
                 
@@ -469,11 +407,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         movement_pack: None,
                         trust_pack: None,
                         ability_pack: None,
-                        murder_pack: None,
-                        corpse_discovery_pack: None,
-                        trial_start_pack: None,
-                        trial_voting_pack: None,
-                        trial_execution_pack: None,
                         wildcard_line: String::new()
                     }
                 ]
@@ -484,10 +417,64 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
             },
 
             EventType::CorpseDiscovery => {
-                vec![]
+                println!("A CORPSE HAS BEEN FOUND!");
+                println!("You can't help but scream in despair as you find what remains of {} lying on the ground,
+                after being brutally murdered in the {}.", game_data.map.has_corpse[game_data.protag.location as usize],
+                RoomTable[game_data.protag.location as usize]);
+                if game_data.protag.hindsight {
+                    println!("Your hindsight also tells you that {} was killed from {}:00 to {}:00",
+                    game_data.map.has_corpse[game_data.protag.location as usize],
+                    game_data.map.murder_timestamp[game_data.protag.location as usize],
+                    game_data.map.murder_timestamp[game_data.protag.location as usize] + 1 % 24);
+                }
+                println!("But still even after the shock, all the remaining survivors must go through the trial.");
+                self.wait_enter();
+                vec![
+                    Event {
+                        timestamp_hours: self.timestamp_hours,
+                        timestamp_minutes: self.timestamp_minutes,
+                        event_type: EventType::TrialStart,
+                        idle_pack: None,
+                        movement_pack: None,
+                        trust_pack: None,
+                        ability_pack: None,
+                        wildcard_line: String::new()
+                    }
+                ]
             },
 
             EventType::TrialStart => {
+                println!("The corpses were cleaned up and everyone is preparing for the trial.");
+                println!("From all of the people remaining, one of them committed a terrible crime.");
+                println!("Will the criminal go unpunished, or will the voters make the right choice?");
+                print!("You see ");
+                for i in 0..game_data.characters.len() {
+                    if game_data.characters[i].is_alive {
+                        print!("{}, ", game_data.characters[i].name);
+                    }
+                }
+                print!("in a circle, with different expressions. 
+                Tension starts to build up around the room.\n");
+                if game_data.protag.investigation {
+                    println!("Your investigation find out the last places each one has respectively been to: ");
+                    for i in 0..game_data.characters.len() {
+                        if game_data.characters[i].is_alive {
+                            print!("{} has been to the {}, the {}, and the {}.", game_data.characters[i].name,
+                            game_data.characters[i].last_positions[0],
+                            game_data.characters[i].last_positions[1],
+                            game_data.characters[i].last_positions[2]);
+                        }
+                    }
+                }
+
+                println!("Who will you vote for? Type your choice and confirm.");
+                let mut index = 1;
+                for i in 0..game_data.characters.len() {
+                    if game_data.characters[i].is_alive {
+                        println!("{} -> {}", index, game_data.characters[i].name);
+                        index += 1;
+                    }
+                }
                 vec![]
             },
 
@@ -537,11 +524,6 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                         movement_pack: Some(new_pack),
                         trust_pack: None,
                         ability_pack: None,
-                        murder_pack: None,
-                        corpse_discovery_pack: None,
-                        trial_start_pack: None,
-                        trial_voting_pack: None,
-                        trial_execution_pack: None,
                         wildcard_line: String::new()
                     });
                 },
@@ -578,8 +560,9 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
         }
         characters[killed].is_alive = false;
         let room = random::<usize>() % NUMBER_OF_ROOMS;
-        map.has_corpse[room] = true;
-    }
+        map.has_corpse[room] = characters[killed].name.clone();
+        map.murder_timestamp[room] = random::<u8>() % 7;
+        }
 
     pub fn check_murder(&self, map: &mut Box<Map>, characters: &mut Vec<Character>) {
         for i in 0..map.chars_in_rooms.len() {
@@ -589,11 +572,13 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
                 if characters[index0].last_positions[2] == RoomTable[i] && characters[index1].last_positions[2] == RoomTable[i] {
                     if characters[index0].is_killer {
                         characters[index1].is_alive = false;
-                        map.has_corpse[i] = true;
+                        map.has_corpse[i] = characters[index1].name.clone();
+                        map.murder_timestamp[i] = self.timestamp_hours;
                     }
                     else if characters[index1].is_killer {
                         characters[index0].is_alive = false;
-                        map.has_corpse[i] = true;
+                        map.has_corpse[i] = characters[index0].name.clone();
+                        map.murder_timestamp[i] = self.timestamp_hours;
                     }
                 }
             }
@@ -709,12 +694,12 @@ impl<'a, 'b, 'c> Event<'a, 'b, 'c> {
     }
 }
 
-pub struct EventQueue<'a, 'b, 'c> {
-    pub events: VecDeque<Event<'a, 'b, 'c>>
+pub struct EventQueue {
+    pub events: VecDeque<Event>
 }
 
-impl<'a, 'b, 'c>  EventQueue<'a, 'b, 'c>  {
-    pub fn new(game_data: &GameData) -> Self {
+impl EventQueue {
+    pub fn new() -> Self {
         let mut events = VecDeque::new();
         events.push_back(Event::introduction());
         events.push_back(Event::start());

@@ -31,7 +31,8 @@ pub enum RoomType {
 pub struct Map {
     pub chars_in_rooms: Vec<Vec<String>>,
     pub adjacency: [[u8; NUMBER_OF_ROOMS]; NUMBER_OF_ROOMS],
-    pub has_corpse: [bool; NUMBER_OF_ROOMS]
+    pub has_corpse: [String; NUMBER_OF_ROOMS],
+    pub murder_timestamp: [u8; NUMBER_OF_ROOMS]
 }
 
 impl Map {
@@ -48,11 +49,13 @@ impl Map {
             vec![]
         ];
         let adjacency = Map::get_adjacency();
-        let has_corpse = [false; NUMBER_OF_ROOMS];
+        let has_corpse: [String; NUMBER_OF_ROOMS] = Default::default();
+        let murder_timestamp = [0; NUMBER_OF_ROOMS];
         Self {
             chars_in_rooms,
             adjacency,
-            has_corpse
+            has_corpse,
+            murder_timestamp
         }
     }
 
