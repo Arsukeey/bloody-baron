@@ -36,7 +36,7 @@ impl AI {
     }
 
     pub fn choose_movement(&mut self, map: Box<Map>, character: Character, index: usize) -> Option<MovementPack> {
-        if !character.is_alive {
+        if !character.is_alive || character.in_room {
             return None;
         }
 

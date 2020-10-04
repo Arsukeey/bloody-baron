@@ -138,16 +138,12 @@ impl Event {
                                 game_data.characters[i].in_room = true;
                             }
                         }
-
+                        
                         for i in 0..game_data.map.chars_in_rooms.len() {
-                            for j in 0..game_data.map.chars_in_rooms[i].len() {
-                                if game_data.map.chars_in_rooms[i][j] != game_data.killer_name 
-                                    && game_data.map.chars_in_rooms[i][j] != game_data.characters[random_pick].name {
-                                    // remove name
-                                    game_data.map.chars_in_rooms[i].remove(j);
-                                }
-                            }
+                            game_data.map.chars_in_rooms[i].clear();
                         }
+                        game_data.map.chars_in_rooms[RoomType::InnHallway as usize].push(game_data.killer_name.clone());
+                        game_data.map.chars_in_rooms[RoomType::Bathroom as usize].push(game_data.characters[random_pick].name.clone());
                     }
 
                     // pick lock
@@ -210,7 +206,6 @@ impl Event {
                 loop {
                     stdin().read_line(&mut buffer).expect("Couldn't read input from stdin.");
                     let parse_result = buffer.trim().parse::<u8>();
-                    println!("{}", buffer);
                     match parse_result {
                         Ok(i) => {
                             if i > 0 && i <= choices.len() as u8 {
@@ -218,10 +213,12 @@ impl Event {
                             }
                             else {
                                 print!("Please input a valid index. ");
+                                buffer = String::new();
                             }
                         },
                         Err(..) => {
                             print!("Please input an acceptable integer. ");
+                            buffer = String::new();
                         }
                     }
                 }
@@ -537,18 +534,19 @@ impl Event {
                 loop {
                     stdin().read_line(&mut buffer).expect("Couldn't read input from stdin.");
                     let parse_result = buffer.trim().parse::<u8>();
-                    println!("{}", buffer);
-                    match parse_result {
+                        match parse_result {
                         Ok(i) => {
                             if i > 0 && i < index as u8 {
                                 break
                             }
                             else {
                                 print!("Please input a valid index. ");
+                                buffer = String::new();
                             }
                         },
                         Err(..) => {
                             print!("Please input an acceptable integer. ");
+                            buffer = String::new();
                         }
                     }
                 }
