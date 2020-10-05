@@ -212,12 +212,10 @@ impl Event {
                                 break
                             }
                             else {
-                                print!("Please input a valid index. ");
                                 buffer = String::new();
                             }
                         },
                         Err(..) => {
-                            print!("Please input an acceptable integer. ");
                             buffer = String::new();
                         }
                     }
@@ -499,6 +497,9 @@ impl Event {
 
             EventType::TrialStart => {
                 println!("The corpses were cleaned up and everyone is preparing for the trial.");
+                for i in 0..game_data.map.has_corpse.len() {
+                    game_data.map.has_corpse[i] = "".to_string();
+                }
                 println!("From all of the people remaining, one of them committed a terrible crime.");
                 println!("Will the criminal go unpunished, or will the voters make the right choice?");
                 print!("You see ");
@@ -540,12 +541,10 @@ impl Event {
                                 break
                             }
                             else {
-                                print!("Please input a valid index. ");
                                 buffer = String::new();
                             }
                         },
                         Err(..) => {
-                            print!("Please input an acceptable integer. ");
                             buffer = String::new();
                         }
                     }
@@ -653,6 +652,7 @@ impl Event {
                     for j in 0..game_data.map.chars_in_rooms[i].len() {
                         if game_data.map.chars_in_rooms[i][j] == pack.choice_name {
                             game_data.map.chars_in_rooms[i].remove(j);
+                            break;
                         }
                     }
                 }
@@ -847,10 +847,8 @@ impl Event {
             }
         }
 
-        if timestamp_hours >= 21 || timestamp_hours <= 6 {
-            events.push(IdleChoices::GoToRoom);
-            choices.push("Go back to your room and sleep.".to_string());
-        }
+        events.push(IdleChoices::GoToRoom);
+        choices.push("Go back to your room and sleep.".to_string());
     }
 
     pub fn update_timestamps(&mut self) {
@@ -911,7 +909,7 @@ impl EventQueue {
         // let mut buffer = [0u8];
         // let _ = stdin.read(&mut buffer).unwrap();
 
-        print!("{}[2J", 27 as char);
+        println!();
         Ok(())
     }
     
