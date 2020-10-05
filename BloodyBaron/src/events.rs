@@ -605,6 +605,7 @@ impl Event {
                             let mut cast = random::<usize>() % NUMBER_OF_CHARS;
                             while cast == i || !game_data.characters[cast].is_alive {
                                 cast += 1;
+                                cast %= NUMBER_OF_CHARS;
                             }
                             let count = vote_table.get_mut(&game_data.characters[cast].name).unwrap();
                             *count += 1;
